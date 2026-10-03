@@ -1,0 +1,6 @@
+{
+  "name": "Jadwal Kuliah S1 Akuntansi UPNVJ",
+  "description": "Sistem Jadwal Kuliah, Absensi, Nilai & IPK, dan Profil Mahasiswa S1 Akuntansi UPN Veteran Jakarta dengan tema Teal dan Kuning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
