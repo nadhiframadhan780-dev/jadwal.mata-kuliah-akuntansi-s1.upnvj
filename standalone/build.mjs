@@ -18,7 +18,24 @@ const views = fs.readFileSync(viewsPath, 'utf8');
 const grades = fs.readFileSync(gradesPath, 'utf8');
 const events = fs.readFileSync(eventsPath, 'utf8');
 
+// Load logo PNG files and convert to base64 data URIs
+const upnLogoPath = path.join(root, 'public', 'upnvj-logo.png');
+const akLogoPath = path.join(root, 'public', 'ak-logo.png');
+const upnLogoBase64 = fs.existsSync(upnLogoPath)
+  ? `data:image/png;base64,${fs.readFileSync(upnLogoPath).toString('base64')}`
+  : 'https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520';
+const akLogoBase64 = fs.existsSync(akLogoPath)
+  ? `data:image/png;base64,${fs.readFileSync(akLogoPath).toString('base64')}`
+  : 'https://feb.upnvj.ac.id/wp-content/uploads/2023/06/AK-s1-220x220.png';
+
+const logoGlobals = `
+window.LOGO_UPNVJ_BASE64 = "${upnLogoBase64}";
+window.LOGO_AK_BASE64 = "${akLogoBase64}";
+`;
+
 const combinedJs = [
+  '// === LOGO ASSETS BASE64 ===',
+  logoGlobals,
   '// === DATA AWAL (SEED) ===',
   seed,
   '// === MODUL STATE & UTILITAS ===',
@@ -55,6 +72,8 @@ Untuk mengaktifkan fitur PWA penuh (Install to Home Screen di Android & Desktop)
 
 let finalHtml = template.replace('/* CSS_PLACEHOLDER */', css);
 finalHtml = finalHtml.replace('// JS_PLACEHOLDER', combinedJs);
+finalHtml = finalHtml.replaceAll('__LOGO_UPNVJ_BASE64__', upnLogoBase64);
+finalHtml = finalHtml.replaceAll('__LOGO_AK_BASE64__', akLogoBase64);
 finalHtml = finalHtml.replace('<!DOCTYPE html>', '<!DOCTYPE html>' + pwaComment);
 
 // Write to root: jadwal-kuliah-aks1.upnvj.html
@@ -68,3 +87,4 @@ if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 const destPublic = path.join(publicDir, 'jadwal-kuliah-aks1.upnvj.html');
 fs.writeFileSync(destPublic, finalHtml, 'utf8');
 console.log('Successfully generated:', destPublic, `(${fs.statSync(destPublic).size} bytes)`);
+

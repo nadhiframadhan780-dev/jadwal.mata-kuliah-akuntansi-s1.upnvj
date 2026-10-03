@@ -124,6 +124,16 @@
         paSheetEl.textContent = p.dosenPA || 'Dr. Ferry Irawan, SE, Ak, SST, SH, ME, MPP, BKP, CPA, CSRA';
       }
 
+      // Ensure Base64 logos are loaded into print sheet
+      if (window.LOGO_UPNVJ_BASE64) {
+        const upnImg = document.getElementById('printSheetLogoUpn');
+        if (upnImg) upnImg.src = window.LOGO_UPNVJ_BASE64;
+      }
+      if (window.LOGO_AK_BASE64) {
+        const akImg = document.getElementById('printSheetLogoAk');
+        if (akImg) akImg.src = window.LOGO_AK_BASE64;
+      }
+
       const semNames = ['', '1 (GANJIL)', '2 (GENAP)', '3 (GANJIL)', '4 (GENAP)', '5 (GANJIL)', '6 (GENAP)', '7 (GANJIL)', '8 (GENAP)'];
       document.getElementById('printSheetSemPeriod').textContent = `SEMESTER ${semNames[currentSem] || currentSem} TAHUN AKADEMIK 2026/2027 REGULER`;
 
@@ -212,7 +222,7 @@
             margin: [8, 8, 8, 8],
             filename: filename,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2.2, useCORS: true, logging: false },
+            html2canvas: { scale: 2.2, useCORS: true, allowTaint: true, logging: false },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
           };
 
