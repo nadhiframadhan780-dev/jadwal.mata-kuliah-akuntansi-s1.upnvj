@@ -5,13 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jadwal Kuliah S1 Akuntansi UPNVJ</title>
     <meta name="description" content="Sistem Jadwal Kuliah, Absensi, Nilai &amp; IPK, dan Profil Mahasiswa S1 Akuntansi UPN Veteran Jakarta dengan tema Teal dan Kuning." />
+    
+    <!-- Favicon & PWA Icons (Official UPNVJ Logo) -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Mobile & PWA Compliance -->
+    <meta name="theme-color" content="#0D9488" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Jadwal AKS1" />
+    
+    <!-- Social & OpenGraph -->
     <meta property="og:title" content="Jadwal Kuliah S1 Akuntansi UPNVJ" />
     <meta property="og:description" content="Sistem Jadwal Kuliah, Absensi, Nilai &amp; IPK, dan Profil Mahasiswa S1 Akuntansi UPN Veteran Jakarta dengan tema Teal dan Kuning." />
+    <meta property="og:image" content="/pwa-512x512.png" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/pwa-512x512.png" />
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW reg note:', err));
+        });
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
