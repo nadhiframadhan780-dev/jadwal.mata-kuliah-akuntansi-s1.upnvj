@@ -259,71 +259,81 @@
 
         const card = document.createElement('div');
         card.className = 'card session-card';
-        card.style.cssText = `
-          border-left: 6px solid ${matkul.warna || 'var(--teal-600)'};
-          padding: 18px 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          position: relative;
-        `;
+        card.style.borderLeft = `5px solid ${matkul.warna || 'var(--teal-600)'}`;
 
         // Status badge colors
         let statusBadge = '';
         if (state.status === 'sedang_berlangsung') {
           statusBadge = `
-            <span style="background: var(--teal-100); color: var(--teal-800); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+            <span style="background: var(--teal-100); color: var(--teal-800); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
               <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--teal-600); animation: pulseDot 1.5s infinite;"></span> Sedang Berlangsung (${state.progress}%)
             </span>
           `;
         } else if (state.status === 'selesai') {
-          statusBadge = `<span style="background: var(--neutral-100); color: var(--neutral-600); font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 9999px;">Selesai</span>`;
+          statusBadge = `<span style="background: var(--neutral-100); color: var(--neutral-600); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 9999px;">Selesai</span>`;
         } else {
-          statusBadge = `<span style="background: var(--yellow-100); color: var(--yellow-700); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px;">Akan Datang</span>`;
+          statusBadge = `<span style="background: var(--yellow-100); color: var(--yellow-800); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">Akan Datang</span>`;
         }
 
         // Attendance active button highlight
         const attStatus = sesi.status || '';
 
         card.innerHTML = `
-          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px;">
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <span style="font-size: 14px; font-weight: 800; color: var(--teal-800);">${sesi.mulai} – ${sesi.selesai} WIB</span>
-                ${statusBadge}
-                <span style="font-size: 11px; color: var(--neutral-500); font-weight: 600;">Pertemuan Ke-${sesi.ke} dari ${matkul.sesi.length}</span>
-              </div>
-              <h4 style="font-size: 16px; font-weight: 800; color: var(--neutral-900);">${escapeHtml(matkul.nama)}</h4>
-              <div style="font-size: 12px; color: var(--neutral-500); margin-top: 2px;">
-                <strong style="color: var(--teal-700);">${matkul.kode}</strong> &bull; Kelas ${matkul.kelas} &bull; ${matkul.sks} SKS &bull; <span style="background: var(--teal-50); color: var(--teal-800); padding: 1px 6px; border-radius: 4px; font-weight: 600;">${escapeHtml(sesi.ruang)}</span>
-              </div>
+          <!-- Top Row: Time, Status, Ke- Pill, Edit Button -->
+          <div class="session-top-row">
+            <div class="session-time-status">
+              <span class="session-time-badge">${sesi.mulai} – ${sesi.selesai} WIB</span>
+              ${statusBadge}
             </div>
+            <div class="session-actions">
+              <span class="session-ke-pill">Ke-${sesi.ke}/${matkul.sesi.length}</span>
+              <button class="session-edit-icon-btn edit-session-btn" title="Edit atau Pindahkan Sesi Ini">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <span>Edit / Pindah</span>
+              </button>
+            </div>
+          </div>
 
-            <button class="btn btn-secondary btn-sm edit-session-btn" title="Edit atau Pindahkan Sesi Ini">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              <span>Edit / Pindah</span>
-            </button>
+          <!-- Course Name & Meta Tags -->
+          <div class="session-main-info">
+            <h4 class="session-course-title">${escapeHtml(matkul.nama)}</h4>
+            <div class="session-tags-row">
+              <span class="badge-code">${matkul.kode}</span>
+              <span class="badge-sks">${matkul.sks} SKS</span>
+              <span class="badge-kelas">Kelas ${matkul.kelas}</span>
+              <span class="badge-room">📍 ${escapeHtml(sesi.ruang || 'Kelas Kecil')}</span>
+            </div>
           </div>
 
           ${state.status === 'sedang_berlangsung' ? `
-            <div style="width: 100%; height: 5px; background: var(--neutral-200); border-radius: 9999px; overflow: hidden;">
-              <div style="width: ${state.progress}%; height: 100%; background: linear-gradient(90deg, var(--teal-500), var(--teal-600));"></div>
+            <div class="session-progress-bar">
+              <div class="session-progress-fill" style="width: ${state.progress}%;"></div>
             </div>
           ` : ''}
 
-          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--neutral-100); padding-top: 10px;">
-            <div style="font-size: 12px; color: var(--neutral-600); display: flex; align-items: center; gap: 6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <span>Dosen: <strong>${escapeHtml(sesi.dosen || matkul.catatan || 'Dosen Pengampu')}</strong></span>
-            </div>
+          <!-- Lecturer Info -->
+          <div class="session-lecturer-row">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Dosen: <strong>${escapeHtml(sesi.dosen || matkul.catatan || 'Dosen Pengampu')}</strong></span>
+          </div>
 
-            <!-- Quick Attendance Toggle Buttons -->
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 11px; font-weight: 600; color: var(--neutral-400); margin-right: 2px;">Presensi:</span>
-              <button class="btn btn-sm att-quick-btn ${attStatus === 'hadir' ? 'btn-primary' : 'btn-secondary'}" data-status="hadir" style="padding: 4px 8px; font-size: 11px;">Hadir</button>
-              <button class="btn btn-sm att-quick-btn ${attStatus === 'izin' ? 'btn-accent' : 'btn-secondary'}" data-status="izin" style="padding: 4px 8px; font-size: 11px;">Izin</button>
-              <button class="btn btn-sm att-quick-btn ${attStatus === 'sakit' ? 'btn-secondary' : 'btn-secondary'}" data-status="sakit" style="padding: 4px 8px; font-size: 11px; ${attStatus === 'sakit' ? 'background: #0284C7; color: #fff;' : ''}">Sakit</button>
-              <button class="btn btn-sm att-quick-btn ${attStatus === 'alpa' ? 'btn-danger' : 'btn-secondary'}" data-status="alpa" style="padding: 4px 8px; font-size: 11px; ${attStatus === 'alpa' ? 'background: var(--danger-600); color: #fff;' : ''}">Alpa</button>
+          <!-- Quick Attendance Toggle Buttons -->
+          <div class="session-attendance-container">
+            <div class="attendance-label">Presensi Kehadiran:</div>
+            <div class="attendance-btn-grid">
+              <button class="att-quick-btn att-hadir ${attStatus === 'hadir' ? 'active' : ''}" data-status="hadir">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Hadir</span>
+              </button>
+              <button class="att-quick-btn att-izin ${attStatus === 'izin' ? 'active' : ''}" data-status="izin">
+                <span>Izin</span>
+              </button>
+              <button class="att-quick-btn att-sakit ${attStatus === 'sakit' ? 'active' : ''}" data-status="sakit">
+                <span>Sakit</span>
+              </button>
+              <button class="att-quick-btn att-alpa ${attStatus === 'alpa' ? 'active' : ''}" data-status="alpa">
+                <span>Alpa</span>
+              </button>
             </div>
           </div>
         `;
@@ -391,13 +401,28 @@
 
     renderJadwalMingguan(container, allMatkul, search, ruang) {
       const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+      // Mobile Day Filter Pills
+      const dayNav = document.createElement('div');
+      dayNav.className = 'jadwal-mobile-days-nav';
+      dayNav.innerHTML = `
+        <button class="jadwal-day-tab-btn active" data-day="all">Semua Hari</button>
+        ${days.map(d => {
+          const count = allMatkul.filter(m => m.hariReguler === d).length;
+          return `<button class="jadwal-day-tab-btn" data-day="${d}">${d} (${count})</button>`;
+        }).join('')}
+      `;
+      container.appendChild(dayNav);
+
       const wrap = document.createElement('div');
+      wrap.className = 'jadwal-grid-wrap';
       wrap.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;';
 
       days.forEach(day => {
         const dayCard = document.createElement('div');
-        dayCard.className = 'card';
-        dayCard.style.cssText = 'padding: 16px; min-height: 200px; display: flex; flex-direction: column; gap: 10px; background: #ffffff;';
+        dayCard.className = 'card jadwal-day-card';
+        dayCard.setAttribute('data-day', day);
+        dayCard.style.cssText = 'padding: 16px; min-height: 140px; display: flex; flex-direction: column; gap: 10px; background: #ffffff;';
 
         dayCard.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--neutral-100); padding-bottom: 8px;">
@@ -422,22 +447,28 @@
             count++;
             const sItem = document.createElement('div');
             sItem.draggable = true;
+            sItem.className = 'jadwal-mini-item';
             sItem.style.cssText = `
               padding: 10px 12px;
               border-radius: var(--radius-md);
               background: var(--neutral-50);
-              border-left: 4px solid ${m.warna || 'var(--teal-600)'};
               border: 1px solid var(--neutral-200);
-              border-left-width: 4px;
-              cursor: grab;
+              border-left: 4px solid ${m.warna || 'var(--teal-600)'};
+              cursor: pointer;
               transition: all 0.15s ease;
             `;
 
             const firstSesi = m.sesi[0] || {};
             sItem.innerHTML = `
-              <div style="font-size: 11px; font-weight: 700; color: var(--teal-700);">${firstSesi.mulai || '07:10'} – ${firstSesi.selesai || '09:40'}</div>
-              <div style="font-size: 13px; font-weight: 700; color: var(--neutral-900); margin: 2px 0;">${escapeHtml(m.nama)}</div>
-              <div style="font-size: 11px; color: var(--neutral-500);">${m.kode} &bull; ${m.sks} SKS &bull; Kelas ${m.kelas}</div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <span style="font-size: 11px; font-weight: 800; color: var(--teal-800);">${firstSesi.mulai || '07:10'} – ${firstSesi.selesai || '09:40'} WIB</span>
+                <span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 6px; border-radius: 4px;">${m.kode}</span>
+              </div>
+              <div style="font-size: 13.5px; font-weight: 800; color: var(--neutral-900); margin: 2px 0; line-height: 1.25;">${escapeHtml(m.nama)}</div>
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--neutral-600); margin-top: 4px;">
+                <span>Kelas ${m.kelas} &bull; ${m.sks} SKS</span>
+                <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(firstSesi.ruang || 'Kelas Kecil')}</span>
+              </div>
             `;
 
             // Drag and drop events
@@ -453,6 +484,10 @@
           }
         });
 
+        if (count === 0) {
+          sessionsContainer.innerHTML = `<div style="font-size: 12px; color: var(--neutral-400); text-align: center; padding: 14px 0; font-style: italic;">Tidak ada perkuliahan</div>`;
+        }
+
         // Drop zone handlers
         dayCard.ondragover = (e) => e.preventDefault();
         dayCard.ondrop = (e) => {
@@ -466,6 +501,22 @@
 
         dayCard.querySelector('.day-count-badge').textContent = `${count} Matkul`;
         wrap.appendChild(dayCard);
+      });
+
+      // Filter click handler
+      dayNav.querySelectorAll('.jadwal-day-tab-btn').forEach(btn => {
+        btn.onclick = () => {
+          dayNav.querySelectorAll('.jadwal-day-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const selectedDay = btn.getAttribute('data-day');
+          wrap.querySelectorAll('.jadwal-day-card').forEach(card => {
+            if (selectedDay === 'all' || card.getAttribute('data-day') === selectedDay) {
+              card.style.display = 'flex';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        };
       });
 
       container.appendChild(wrap);
@@ -504,15 +555,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
           `;
           const s1 = m.sesi[0] || {};
           row.innerHTML = `
-            <div>
-              <div style="font-size: 12px; font-weight: 700; color: var(--teal-700);">${s1.mulai || ''} – ${s1.selesai || ''} WIB &bull; ${m.kode}</div>
-              <div style="font-size: 14px; font-weight: 700; color: var(--neutral-900);">${escapeHtml(m.nama)}</div>
-              <div style="font-size: 11.5px; color: var(--neutral-500);">Dosen: ${escapeHtml(s1.dosen || m.catatan || '-')} &bull; ${m.sks} SKS &bull; Kelas ${m.kelas}</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                <span style="font-size: 11.5px; font-weight: 800; color: var(--teal-800);">${s1.mulai || ''} – ${s1.selesai || ''} WIB</span>
+                <span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 5px; border-radius: 4px;">${m.kode}</span>
+              </div>
+              <div style="font-size: 14px; font-weight: 800; color: var(--neutral-900); line-height: 1.25; margin-bottom: 4px;">${escapeHtml(m.nama)}</div>
+              <div style="font-size: 11.5px; color: var(--neutral-600); display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                <span>Dosen: <strong>${escapeHtml(s1.dosen || m.catatan || '-')}</strong></span>
+                <span>&bull;</span>
+                <span>${m.sks} SKS</span>
+                <span>&bull;</span>
+                <span>Kelas ${m.kelas}</span>
+                <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(s1.ruang || 'Kelas Kecil')}</span>
+              </div>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Rincian</button>
+            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)" style="flex-shrink: 0; padding: 6px 12px;">Rincian</button>
           `;
           list.appendChild(row);
         });
@@ -525,6 +587,7 @@
 
     renderJadwalPerMatkul(container, allMatkul, search, ruang) {
       const wrap = document.createElement('div');
+      wrap.className = 'jadwal-permatkul-grid';
       wrap.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;';
 
       allMatkul.forEach(m => {
@@ -581,7 +644,7 @@
     renderJadwalSemuaPertemuan(container, allMatkul, search, ruang) {
       const wrap = document.createElement('div');
       wrap.className = 'card';
-      wrap.style.padding = '20px';
+      wrap.style.padding = '16px 20px';
 
       const allSessionsFlat = [];
       allMatkul.forEach(m => {
@@ -592,38 +655,28 @@
       allSessionsFlat.sort((a, b) => a.sesi.tanggal.localeCompare(b.sesi.tanggal));
 
       wrap.innerHTML = `
-        <h3 style="font-size: 16px; font-weight: 800; color: var(--teal-900); margin-bottom: 12px;">Kronologi Seluruh Pertemuan Semester Aktif</h3>
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
-            <thead>
-              <tr style="background: var(--teal-50); color: var(--teal-900); border-bottom: 2px solid var(--teal-200);">
-                <th style="padding: 8px 10px;">Tanggal</th>
-                <th style="padding: 8px 10px;">Jam</th>
-                <th style="padding: 8px 10px;">Mata Kuliah</th>
-                <th style="padding: 8px 10px;">Ke-</th>
-                <th style="padding: 8px 10px;">Ruang</th>
-                <th style="padding: 8px 10px;">Dosen</th>
-                <th style="padding: 8px 10px;">Kehadiran</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${allSessionsFlat.map(item => `
-                <tr style="border-bottom: 1px solid var(--neutral-200);">
-                  <td style="padding: 8px 10px; font-weight: 600;">${formatDateIndo(item.sesi.tanggal)}</td>
-                  <td style="padding: 8px 10px;">${item.sesi.mulai}–${item.sesi.selesai}</td>
-                  <td style="padding: 8px 10px; font-weight: 700; color: var(--teal-800);">${escapeHtml(item.matkul.nama)}</td>
-                  <td style="padding: 8px 10px;">Ke-${item.sesi.ke}</td>
-                  <td style="padding: 8px 10px;">${escapeHtml(item.sesi.ruang)}</td>
-                  <td style="padding: 8px 10px; font-size: 11.5px; color: var(--neutral-600);">${escapeHtml(item.sesi.dosen)}</td>
-                  <td style="padding: 8px 10px;">
-                    <span style="padding: 2px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 700; background: ${item.sesi.status === 'hadir' ? 'var(--teal-100)' : 'var(--neutral-100)'}; color: ${item.sesi.status === 'hadir' ? 'var(--teal-800)' : 'var(--neutral-500)'};">
-                      ${item.sesi.status ? item.sesi.status.toUpperCase() : 'BELUM'}
-                    </span>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="font-size: 15px; font-weight: 800; color: var(--teal-900); margin: 0;">Kronologi Seluruh Pertemuan Semester</h3>
+          <span style="font-size: 11px; background: var(--teal-100); color: var(--teal-800); padding: 2px 8px; border-radius: 9999px; font-weight: 700;">${allSessionsFlat.length} Sesi</span>
+        </div>
+
+        <!-- Mobile Card List View -->
+        <div class="mobile-meetings-list" style="display: flex; flex-direction: column; gap: 8px;">
+          ${allSessionsFlat.map(item => `
+            <div style="padding: 10px 12px; border-radius: 10px; background: var(--neutral-50); border: 1px solid var(--neutral-200); border-left: 4px solid ${item.matkul.warna || 'var(--teal-600)'};">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                <span style="font-size: 11px; font-weight: 800; color: var(--teal-800);">${formatShortDate(item.sesi.tanggal)} &bull; ${item.sesi.mulai}–${item.sesi.selesai} WIB</span>
+                <span style="padding: 2px 7px; border-radius: 9999px; font-size: 10px; font-weight: 800; background: ${item.sesi.status === 'hadir' ? 'var(--teal-100)' : (item.sesi.status === 'izin' ? 'var(--yellow-100)' : 'var(--neutral-200)')}; color: ${item.sesi.status === 'hadir' ? 'var(--teal-800)' : (item.sesi.status === 'izin' ? 'var(--yellow-800)' : 'var(--neutral-600)')};">
+                  ${item.sesi.status ? item.sesi.status.toUpperCase() : 'BELUM'}
+                </span>
+              </div>
+              <div style="font-size: 13.5px; font-weight: 800; color: var(--neutral-900); line-height: 1.25;">${escapeHtml(item.matkul.nama)} (Ke-${item.sesi.ke})</div>
+              <div style="font-size: 11px; color: var(--neutral-500); margin-top: 3px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(item.sesi.ruang || 'Kelas Kecil')}</span>
+                <span>${escapeHtml(item.sesi.dosen || '-')}</span>
+              </div>
+            </div>
+          `).join('')}
         </div>
       `;
 

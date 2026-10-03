@@ -146,6 +146,19 @@
           <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Buka Menu">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="6" y2="6"/><line x1="3" x2="21" y1="12" y2="12"/><line x1="3" x2="21" y1="18" y2="18"/></svg>
           </button>
+
+          <!-- Mobile Brand Lockup (UPNVJ & S1 Akuntansi Logos) -->
+          <div class="mobile-topbar-brand">
+            <div class="mobile-brand-logos">
+              <img src="__LOGO_UPNVJ_BASE64__" alt="Logo UPNVJ" class="mobile-logo-img" />
+              <img src="__LOGO_AK_BASE64__" alt="Logo S1 Akuntansi" class="mobile-logo-img" />
+            </div>
+            <div class="mobile-brand-meta">
+              <span class="mobile-brand-name">Jadwal AKS1</span>
+              <span class="mobile-brand-badge" id="mobileSemBadge">Sem 1</span>
+            </div>
+          </div>
+
           <div class="topbar-greeting-text">
             <h2 id="topbarGreeting">Selamat datang, Nadhif</h2>
             <p id="topbarDateStr">Memuat tanggal...</p>
@@ -185,62 +198,62 @@
           <div id="smartReminderContainer" style="margin-bottom: 20px;"></div>
 
           <!-- Weekly Strip Selector -->
-          <div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div class="card weekly-calendar-card" style="padding: 16px 20px; margin-bottom: 20px;">
+            <div class="weekly-nav-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-weight: 700; font-size: 13.5px; color: var(--teal-900);">Kalender Kuliah Mingguan</span>
-                <span id="weeklyRangeLabel" style="font-size: 12px; color: var(--neutral-500); font-weight: 500;"></span>
+                <span style="font-weight: 700; font-size: 13.5px; color: var(--teal-900);">Kalender Mingguan</span>
+                <span id="weeklyRangeLabel" style="font-size: 11.5px; color: var(--neutral-500); font-weight: 500;"></span>
               </div>
-              <div style="display: flex; align-items: center; gap: 6px;">
+              <div class="weekly-nav-btns" style="display: flex; align-items: center; gap: 6px;">
                 <button class="btn btn-secondary btn-sm" id="prevWeekBtn" title="Minggu Sebelumnya">&larr;</button>
                 <button class="btn btn-secondary btn-sm" id="todayWeekBtn">Hari Ini</button>
                 <button class="btn btn-secondary btn-sm" id="nextWeekBtn" title="Minggu Berikutnya">&rarr;</button>
               </div>
             </div>
-            <div id="weekDaysGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+            <div id="weekDaysGrid" class="week-days-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
               <!-- Dynamic week day pills -->
             </div>
           </div>
 
           <!-- Quick Summary Row -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px;">
-            <div class="card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--teal-100); display: flex; align-items: center; justify-content: center; color: var(--teal-700);">
+          <div class="stats-overview-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px;">
+            <div class="card stat-card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
+              <div class="stat-card-icon" style="width: 44px; height: 44px; border-radius: 12px; background: var(--teal-100); display: flex; align-items: center; justify-content: center; color: var(--teal-700);">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
               </div>
               <div>
-                <div style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">KULIAH HARI INI</div>
-                <div style="font-size: 20px; font-weight: 800; color: var(--neutral-900);" id="statTodayCount">0 Matkul</div>
+                <div class="stat-card-label" style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">KULIAH HARI INI</div>
+                <div class="stat-card-val" style="font-size: 20px; font-weight: 800; color: var(--neutral-900);" id="statTodayCount">0 Matkul</div>
               </div>
             </div>
 
-            <div class="card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--yellow-100); display: flex; align-items: center; justify-content: center; color: var(--yellow-700);">
+            <div class="card stat-card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
+              <div class="stat-card-icon" style="width: 44px; height: 44px; border-radius: 12px; background: var(--yellow-100); display: flex; align-items: center; justify-content: center; color: var(--yellow-700);">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
               <div>
-                <div style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">BEBAN HARI INI</div>
-                <div style="font-size: 20px; font-weight: 800; color: var(--neutral-900);" id="statTodayHours">0 SKS</div>
+                <div class="stat-card-label" style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">BEBAN HARI INI</div>
+                <div class="stat-card-val" style="font-size: 20px; font-weight: 800; color: var(--neutral-900);" id="statTodayHours">0 SKS</div>
               </div>
             </div>
 
-            <div class="card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--teal-50); border: 1px solid var(--teal-200); display: flex; align-items: center; justify-content: center; color: var(--teal-700);">
+            <div class="card stat-card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
+              <div class="stat-card-icon" style="width: 44px; height: 44px; border-radius: 12px; background: var(--teal-50); border: 1px solid var(--teal-200); display: flex; align-items: center; justify-content: center; color: var(--teal-700);">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
               <div>
-                <div style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">KEHADIRAN SEMESTER</div>
-                <div style="font-size: 20px; font-weight: 800; color: var(--teal-700);" id="statSemesterAttendance">0%</div>
+                <div class="stat-card-label" style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">KEHADIRAN SEMESTER</div>
+                <div class="stat-card-val" style="font-size: 20px; font-weight: 800; color: var(--teal-700);" id="statSemesterAttendance">0%</div>
               </div>
             </div>
 
-            <div class="card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--yellow-50); border: 1px solid var(--yellow-200); display: flex; align-items: center; justify-content: center; color: var(--yellow-700);">
+            <div class="card stat-card" style="display: flex; align-items: center; gap: 14px; padding: 16px 20px;">
+              <div class="stat-card-icon" style="width: 44px; height: 44px; border-radius: 12px; background: var(--yellow-50); border: 1px solid var(--yellow-200); display: flex; align-items: center; justify-content: center; color: var(--yellow-700);">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               </div>
               <div>
-                <div style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">ESTIMASI IPK</div>
-                <div style="font-size: 20px; font-weight: 800; color: var(--neutral-900);" id="statIpkCurrent">--</div>
+                <div class="stat-card-label" style="font-size: 11.5px; color: var(--neutral-500); font-weight: 600;">ESTIMASI IPK</div>
+                <div class="stat-card-val" style="font-size: 20px; font-weight: 800; color: var(--neutral-900);" id="statIpkCurrent">--</div>
               </div>
             </div>
           </div>
@@ -267,37 +280,37 @@
 
         <!-- 2. JADWAL (TERSTRUKTUR PER HARI) -->
         <section class="page-view" id="view-jadwal">
-          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px;">
+          <div class="jadwal-page-header">
             <div>
               <h2 style="font-size: 20px; font-weight: 800; color: var(--teal-900);">Struktur Jadwal Kuliah</h2>
               <p style="font-size: 13px; color: var(--neutral-500);">Kelola seluruh mata kuliah dan sesi pertemuan semester aktif</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="jadwal-header-actions">
               <button class="btn btn-accent btn-sm" id="openPrintPdfModalBtn" style="font-weight: 700;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                <span>Cetak &amp; Unduh PDF Resmi</span>
+                <span>Cetak / Unduh PDF</span>
               </button>
               <button class="btn btn-primary btn-sm" id="openAddMatkulModalBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-                <span>Tambah Matkul Baru</span>
+                <span>+ Matkul Baru</span>
               </button>
             </div>
           </div>
 
           <!-- Tabs / Segmented Control -->
-          <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #ffffff; padding: 12px 16px; border-radius: var(--radius-xl); border: 1px solid var(--neutral-200);">
+          <div class="jadwal-filter-bar">
             <!-- View Mode Tabs -->
-            <div style="display: flex; background: var(--neutral-100); padding: 4px; border-radius: var(--radius-md); gap: 4px;">
-              <button class="btn btn-sm jadwal-tab-btn active" data-tab="mingguan" style="border: none; background: #fff; color: var(--teal-800); box-shadow: 0 1px 3px rgba(0,0,0,0.1);">Mingguan</button>
-              <button class="btn btn-sm jadwal-tab-btn" data-tab="perhari" style="border: none; background: transparent; color: var(--neutral-600);">Per Hari</button>
-              <button class="btn btn-sm jadwal-tab-btn" data-tab="permatkul" style="border: none; background: transparent; color: var(--neutral-600);">Per Matkul</button>
-              <button class="btn btn-sm jadwal-tab-btn" data-tab="semuapertemuan" style="border: none; background: transparent; color: var(--neutral-600);">Semua Pertemuan</button>
+            <div class="jadwal-tab-control">
+              <button class="btn btn-sm jadwal-tab-btn active" data-tab="mingguan">Mingguan</button>
+              <button class="btn btn-sm jadwal-tab-btn" data-tab="perhari">Per Hari</button>
+              <button class="btn btn-sm jadwal-tab-btn" data-tab="permatkul">Per Matkul</button>
+              <button class="btn btn-sm jadwal-tab-btn" data-tab="semuapertemuan">Semua Sesi</button>
             </div>
 
             <!-- Filters -->
-            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-              <input type="text" id="jadwalSearchInput" placeholder="Cari matkul / dosen..." style="padding: 6px 12px; border-radius: var(--radius-md); border: 1px solid var(--neutral-300); font-size: 12.5px; width: 180px; outline: none;" />
-              <select id="jadwalFilterRuang" style="padding: 6px 10px; border-radius: var(--radius-md); border: 1px solid var(--neutral-300); font-size: 12.5px; outline: none; background: #fff;">
+            <div class="jadwal-filter-inputs">
+              <input type="text" id="jadwalSearchInput" placeholder="Cari matkul / dosen..." class="jadwal-search-field" />
+              <select id="jadwalFilterRuang" class="jadwal-select-field">
                 <option value="all">Semua Ruang</option>
                 <option value="Kelas Kecil">Kelas Kecil</option>
                 <option value="Kelas Besar">Kelas Besar</option>
@@ -839,10 +852,6 @@
     <button class="bottom-nav-item" data-page="profil">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Profil</span>
-    </button>
-    <button class="bottom-nav-item" data-page="semester">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-      <span>Semester</span>
     </button>
   </nav>
 
