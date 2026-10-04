@@ -895,6 +895,44 @@
   <!-- Modals & Overlays -->
 
   <!-- 1. Modal Edit / Tambah Sesi & Pindah Jadwal -->
+  <!-- Modal Geser Jadwal Matkul (pilih hari & Jam ke-N) -->
+  <div class="modal-overlay" id="shiftModal">
+    <div class="modal-dialog" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3>Geser Jadwal Mata Kuliah</h3>
+        <button class="modal-close" id="closeShiftModalBtn">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="shift-summary">
+          <div id="shiftMatkulName" style="font-weight: 800; color: var(--teal-900); font-size: 14px;"></div>
+          <div id="shiftCurrent" style="font-size: 12px; color: var(--neutral-600); margin-top: 2px;"></div>
+        </div>
+        <div>
+          <label class="fld-label">Hari Tujuan</label>
+          <select id="shiftHari" class="fld-control"></select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div><label class="fld-label">Mulai di</label><select id="shiftJam" class="fld-control"></select></div>
+          <div><label class="fld-label">Durasi</label><select id="shiftDurasi" class="fld-control"></select></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div><label class="fld-label">Jam Mulai</label><input type="time" id="shiftMulai" class="fld-control" /></div>
+          <div><label class="fld-label">Jam Selesai</label><input type="time" id="shiftSelesai" class="fld-control" /></div>
+        </div>
+        <div id="shiftPreview" class="jam-preview"></div>
+        <div style="background: var(--yellow-50); border: 1px solid var(--yellow-200); padding: 10px 12px; border-radius: var(--radius-md);">
+          <div style="font-size: 11.5px; font-weight: 700; color: var(--yellow-800); margin-bottom: 6px;">Terapkan ke:</div>
+          <label style="display: block; font-size: 12px; margin-bottom: 4px; cursor: pointer;"><input type="radio" name="shiftScope" value="upcoming" checked /> Pertemuan yang belum berlangsung (disarankan)</label>
+          <label style="display: block; font-size: 12px; cursor: pointer;"><input type="radio" name="shiftScope" value="all" /> Semua pertemuan, termasuk yang sudah lewat</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="cancelShiftBtn">Batal</button>
+        <button class="btn btn-primary btn-sm" id="applyShiftBtn">Terapkan Pergeseran</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="sessionModal">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -921,6 +959,18 @@
               <input type="date" id="sesFormTanggal" style="width: 100%; padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--neutral-300); font-size: 13px;" required />
             </div>
           </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label class="fld-label">Pilih Jam Kuliah</label>
+              <select id="sesFormJam" class="fld-control"></select>
+            </div>
+            <div>
+              <label class="fld-label">Durasi</label>
+              <select id="sesFormDurasi" class="fld-control"></select>
+            </div>
+          </div>
+          <div id="sesFormJamPreview" class="jam-preview"></div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>

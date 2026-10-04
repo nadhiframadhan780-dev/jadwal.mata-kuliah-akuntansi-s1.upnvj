@@ -4,6 +4,63 @@
 
   const { appStore, formatDateIndo, formatShortDate, getTodayIso, showToast, showCustomConfirm, escapeHtml, DAYS_ID } = window;
 
+
+  // ===== Slot "Jam ke-N" (1 jam kuliah = 50 menit, mulai 07:10; istirahat 12:10–13:00) =====
+  // Ubah daftar ini jika jam kuliah resmi kampus berbeda.
+  const JAM_SLOTS = ['07:10','08:00','08:50','09:40','10:30','11:20','13:00','13:50','14:40','15:30','16:20','17:10','18:00','18:50'];
+  const JAM_MENIT = 50;
+  const HARI_URUT = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+  const toMin = (t) => { const [h, m] = (t || '0:0').split(':').map(Number); return h * 60 + m; };
+  const fromMin = (n) => String(Math.floor(n / 60) % 24).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
+  const addMin = (t, n) => fromMin(toMin(t) + n);
+  function addDaysIso(iso, n) {
+    const d = new Date(iso + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  // Hubungkan dropdown "Jam ke-N" + "Durasi" dengan input jam mulai/selesai (dua arah)
+  function bindJamPicker(ids) {
+    const $ = (id) => document.getElementById(id);
+    const jam = $(ids.jam), dur = $(ids.dur), mu = $(ids.mulai), se = $(ids.selesai), pv = $(ids.preview);
+    jam.innerHTML = JAM_SLOTS.map((t, i) => `<option value="${i}">Jam ke-${i + 1} • ${t}${i === 6 ? ' (setelah istirahat)' : ''}</option>`).join('') + '<option value="custom">Atur manual…</option>';
+    dur.innerHTML = [1, 2, 3, 4, 5, 6].map(d => `<option value="${d}">${d} jam (${d * JAM_MENIT} menit)</option>`).join('');
+    const preview = () => { if (pv) pv.textContent = (mu.value && se.value) ? `Berlangsung ${mu.value} – ${se.value} WIB` : ''; };
+    const fromSlot = () => {
+      const st = jam.value === 'custom' ? mu.value : JAM_SLOTS[+jam.value];
+      if (!st) return;
+      mu.value = st;
+      se.value = addMin(st, (+dur.value) * JAM_MENIT);
+      preview();
+    };
+    const fromTimes = () => {
+      const i = JAM_SLOTS.indexOf(mu.value);
+      jam.value = i >= 0 ? String(i) : 'custom';
+      const d = (toMin(se.value) - toMin(mu.value)) / JAM_MENIT;
+      if (Number.isInteger(d) && d >= 1 && d <= 6) dur.value = String(d);
+      preview();
+    };
+    jam.onchange = fromSlot; dur.onchange = fromSlot;
+    mu.oninput = fromTimes; se.oninput = fromTimes;
+    return { fromTimes, setDurasi: (n) => { dur.value = String(Math.min(6, Math.max(1, n || 2))); } };
+  }
+
+  // Pindahkan seluruh pertemuan sebuah matkul ke hari & jam baru (tanggal ikut bergeser)
+  function applyMatkulMove(matkul, hari, mulai, selesai, scope) {
+    const oldIdx = HARI_URUT.indexOf(matkul.hariReguler);
+    const newIdx = HARI_URUT.indexOf(hari);
+    const delta = oldIdx >= 0 ? newIdx - oldIdx : 0;
+    const today = getTodayIso();
+    matkul.sesi.forEach(s => {
+      if (scope === 'all' || s.tanggal >= today) {
+        if (delta) s.tanggal = addDaysIso(s.tanggal, delta);
+        s.mulai = mulai;
+        s.selesai = selesai;
+      }
+    });
+    matkul.hariReguler = hari;
+  }
+
   let currentWeekStart = getMonday(new Date());
 
   function getMonday(d) {
@@ -482,7 +539,7 @@
             sItem.innerHTML = `
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                 <span style="font-size: 11px; font-weight: 800; color: var(--teal-800);">${firstSesi.mulai || '07:10'} – ${firstSesi.selesai || '09:40'} WIB</span>
-                <span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 6px; border-radius: 4px;">${m.kode}</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 6px; border-radius: 4px;">${m.kode}</span><button type="button" class="shift-btn" title="Geser hari / jam kuliah" onclick="event.stopPropagation(); window.appViews.openShiftModal('${m.id}')">⇄ Geser</button></span>
               </div>
               <div style="font-size: 13.5px; font-weight: 800; color: var(--neutral-900); margin: 2px 0; line-height: 1.25;">${escapeHtml(m.nama)}</div>
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--neutral-600); margin-top: 4px;">
@@ -594,7 +651,7 @@
                 <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(s1.ruang || 'Kelas Kecil')}</span>
               </div>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)" style="flex-shrink: 0; padding: 6px 12px;">Rincian</button>
+            <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;"><button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)" style="padding: 6px 12px;">Rincian</button><button class="btn btn-sm shift-btn-lg" onclick="window.appViews.openShiftModal('${m.id}')">⇄ Geser</button></div>
           `;
           list.appendChild(row);
         });
@@ -625,7 +682,7 @@
               <span style="font-size: 11px; font-weight: 700; color: var(--teal-700);">${m.kode} &bull; Kelas ${m.kelas} &bull; ${m.sks} SKS</span>
               <h4 style="font-size: 15px; font-weight: 800; color: var(--neutral-900);">${escapeHtml(m.nama)}</h4>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Ubah</button>
+            <div style="display: flex; gap: 6px; flex-shrink: 0;"><button class="btn btn-sm shift-btn-lg" onclick="window.appViews.openShiftModal('${m.id}')">⇄ Geser</button><button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Ubah</button></div>
           </div>
           <div style="font-size: 12px; color: var(--neutral-600);">
             Hari Reguler: <strong>${m.hariReguler}</strong> &bull; Total ${totalSesi} Pertemuan
@@ -938,6 +995,10 @@
       document.getElementById('sesFormStatus').value = sesi.status || '';
       document.getElementById('sesFormDosen').value = sesi.dosen || '';
 
+      const picker = bindJamPicker({ jam: 'sesFormJam', dur: 'sesFormDurasi', mulai: 'sesFormMulai', selesai: 'sesFormSelesai', preview: 'sesFormJamPreview' });
+      picker.setDurasi(matkul.sks);
+      picker.fromTimes();
+
       document.getElementById('sessionModal').classList.add('active');
     },
 
@@ -963,15 +1024,18 @@
       }
 
       if (moveScope === 'all_future') {
-        // Calculate new weekday from tanggal
+        // Hari baru dihitung dari tanggal yang dipilih; pertemuan mendatang ikut bergeser tanggal & jamnya
         const targetDate = new Date(tanggal + 'T00:00:00');
         const newDayName = DAYS_ID[targetDate.getDay()];
+        const oldIdx = HARI_URUT.indexOf(matkul.hariReguler);
+        const delta = oldIdx >= 0 ? HARI_URUT.indexOf(newDayName) - oldIdx : 0;
         matkul.hariReguler = newDayName;
 
-        // Shift future meetings
         const todayIso = getTodayIso();
         matkul.sesi.forEach((s, idx) => {
-          if (idx >= sesiIndex || s.tanggal >= todayIso) {
+          if (idx === sesiIndex) return;
+          if (idx > sesiIndex || s.tanggal >= todayIso) {
+            if (delta) s.tanggal = addDaysIso(s.tanggal, delta);
             s.mulai = mulai;
             s.selesai = selesai;
             s.ruang = ruang;
@@ -991,11 +1055,51 @@
       showToast('success', 'Jadwal Disimpan', `Perubahan jadwal untuk ${matkul.nama} berhasil disimpan.`);
     },
 
+    // Dipanggil saat kartu matkul di-drag ke hari lain: tanya dulu jam keberapa
     shiftMatkulDay(matkul, newDayName) {
-      matkul.hariReguler = newDayName;
-      appStore.save();
-      appRenderer.renderAll();
-      showToast('success', 'Jadwal Digeser', `${matkul.nama} berhasil dipindahkan ke hari ${newDayName}.`);
+      this.openShiftModal(matkul.id, newDayName);
+    },
+
+    openShiftModal(matkulId, dayName) {
+      const matkul = appStore.getActiveMatkul().find(m => m.id === matkulId);
+      if (!matkul) return;
+      const $ = (id) => document.getElementById(id);
+      const today = getTodayIso();
+      const ref = matkul.sesi.find(x => x.tanggal >= today) || matkul.sesi[0] || {};
+
+      $('shiftMatkulName').textContent = `${matkul.nama} (${matkul.kode})`;
+      $('shiftCurrent').textContent = `Jadwal sekarang: ${matkul.hariReguler}, ${ref.mulai || '--:--'} – ${ref.selesai || '--:--'} WIB`;
+      $('shiftHari').innerHTML = HARI_URUT.slice(0, 6).map(h => `<option value="${h}">${h}</option>`).join('');
+      $('shiftHari').value = dayName || matkul.hariReguler;
+      $('shiftMulai').value = ref.mulai || '07:10';
+      $('shiftSelesai').value = ref.selesai || addMin(ref.mulai || '07:10', (matkul.sks || 2) * JAM_MENIT);
+      document.querySelector('input[name="shiftScope"][value="upcoming"]').checked = true;
+
+      const picker = bindJamPicker({ jam: 'shiftJam', dur: 'shiftDurasi', mulai: 'shiftMulai', selesai: 'shiftSelesai', preview: 'shiftPreview' });
+      picker.setDurasi(matkul.sks);
+      picker.fromTimes();
+
+      const close = () => $('shiftModal').classList.remove('active');
+      $('closeShiftModalBtn').onclick = close;
+      $('cancelShiftBtn').onclick = close;
+      $('applyShiftBtn').onclick = () => {
+        const hari = $('shiftHari').value, mulai = $('shiftMulai').value, selesai = $('shiftSelesai').value;
+        const scope = document.querySelector('input[name="shiftScope"]:checked')?.value || 'upcoming';
+        if (!mulai || !selesai || selesai <= mulai) {
+          showToast('error', 'Jam Tidak Valid', 'Jam selesai harus lebih akhir dari jam mulai!');
+          return;
+        }
+        const before = checkScheduleClashes(appStore.getActiveMatkul()).length;
+        applyMatkulMove(matkul, hari, mulai, selesai, scope);
+        appStore.save();
+        close();
+        appRenderer.renderAll();
+        const after = checkScheduleClashes(appStore.getActiveMatkul()).length;
+        showToast(after > before ? 'warning' : 'success',
+          after > before ? 'Jadwal Digeser — Ada Bentrok' : 'Jadwal Digeser',
+          `${matkul.nama} dipindahkan ke ${hari}, ${mulai}–${selesai} WIB.` + (after > before ? ' Cek peringatan bentrok di halaman Jadwal.' : ''));
+      };
+      $('shiftModal').classList.add('active');
     }
   };
 
