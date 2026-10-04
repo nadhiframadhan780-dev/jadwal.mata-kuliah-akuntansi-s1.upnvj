@@ -388,14 +388,34 @@
         }
       }
 
+      // Filter pencarian & ruang berlaku untuk SEMUA tampilan (sebelumnya hanya Mingguan)
+      const filtered = allMatkul.filter(m => {
+        if (searchQuery) {
+          const hay = [m.nama, m.kode, m.catatan, ...(m.sesi || []).map(s => s.dosen)].join(' ').toLowerCase();
+          if (!hay.includes(searchQuery)) return false;
+        }
+        if (ruangFilter !== 'all' && !(m.sesi || []).some(s => s.ruang === ruangFilter)) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="jadwal-empty">
+            <div class="jadwal-empty-icon">🔍</div>
+            <h4>Tidak ada mata kuliah yang cocok</h4>
+            <p>Coba ubah kata kunci pencarian atau filter ruang.</p>
+          </div>`;
+        return;
+      }
+
       if (activeTab === 'mingguan') {
-        this.renderJadwalMingguan(container, allMatkul, searchQuery, ruangFilter);
+        this.renderJadwalMingguan(container, filtered, '', 'all');
       } else if (activeTab === 'perhari') {
-        this.renderJadwalPerHari(container, allMatkul, searchQuery, ruangFilter);
+        this.renderJadwalPerHari(container, filtered, '', 'all');
       } else if (activeTab === 'permatkul') {
-        this.renderJadwalPerMatkul(container, allMatkul, searchQuery, ruangFilter);
+        this.renderJadwalPerMatkul(container, filtered, '', 'all');
       } else if (activeTab === 'semuapertemuan') {
-        this.renderJadwalSemuaPertemuan(container, allMatkul, searchQuery, ruangFilter);
+        this.renderJadwalSemuaPertemuan(container, filtered, '', 'all');
       }
     },
 
