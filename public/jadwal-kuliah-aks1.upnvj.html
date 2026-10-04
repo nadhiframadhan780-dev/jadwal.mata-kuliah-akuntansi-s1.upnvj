@@ -1523,6 +1523,29 @@ img, svg, video, canvas { max-width: 100%; }
 }
 @media (max-width: 768px) { .jadwal-search-field::placeholder { font-size: 14px; } }
 
+
+/* ===== Geser jadwal & pemilih Jam ke-N ===== */
+.fld-label { display: block; font-size: 11.5px; font-weight: 700; color: var(--neutral-700); margin-bottom: 4px; }
+.fld-control {
+  width: 100%; height: 40px; padding: 0 10px; font: inherit; font-size: 13px; color: var(--neutral-800);
+  background: #fff; border: 1px solid var(--neutral-300); border-radius: var(--radius-md); outline: none;
+}
+select.fld-control {
+  appearance: none; -webkit-appearance: none; padding-right: 30px;
+  background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 10px center;
+}
+.fld-control:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(20,184,166,.18); }
+.jam-preview { font-size: 12px; font-weight: 700; color: var(--teal-800); background: var(--teal-50); border: 1px dashed var(--teal-300); border-radius: 10px; padding: 8px 12px; text-align: center; }
+.jam-preview:empty { display: none; }
+.shift-summary { background: var(--teal-50); border: 1px solid var(--teal-200); border-radius: var(--radius-md); padding: 10px 12px; }
+.shift-btn, .shift-btn-lg {
+  font: inherit; cursor: pointer; font-weight: 800; color: var(--teal-800); background: var(--teal-50);
+  border: 1px solid var(--teal-200); transition: all .15s; white-space: nowrap;
+}
+.shift-btn { font-size: 10px; padding: 1px 7px; border-radius: 9999px; }
+.shift-btn-lg { font-size: 12px; padding: 6px 12px; border-radius: 10px; }
+.shift-btn:hover, .shift-btn-lg:hover { background: var(--teal-100); border-color: var(--teal-400); }
+
   </style>
 </head>
 <body>
@@ -2345,6 +2368,44 @@ img, svg, video, canvas { max-width: 100%; }
   <!-- Modals & Overlays -->
 
   <!-- 1. Modal Edit / Tambah Sesi & Pindah Jadwal -->
+  <!-- Modal Geser Jadwal Matkul (pilih hari & Jam ke-N) -->
+  <div class="modal-overlay" id="shiftModal">
+    <div class="modal-dialog" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3>Geser Jadwal Mata Kuliah</h3>
+        <button class="modal-close" id="closeShiftModalBtn">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="shift-summary">
+          <div id="shiftMatkulName" style="font-weight: 800; color: var(--teal-900); font-size: 14px;"></div>
+          <div id="shiftCurrent" style="font-size: 12px; color: var(--neutral-600); margin-top: 2px;"></div>
+        </div>
+        <div>
+          <label class="fld-label">Hari Tujuan</label>
+          <select id="shiftHari" class="fld-control"></select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div><label class="fld-label">Mulai di</label><select id="shiftJam" class="fld-control"></select></div>
+          <div><label class="fld-label">Durasi</label><select id="shiftDurasi" class="fld-control"></select></div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div><label class="fld-label">Jam Mulai</label><input type="time" id="shiftMulai" class="fld-control" /></div>
+          <div><label class="fld-label">Jam Selesai</label><input type="time" id="shiftSelesai" class="fld-control" /></div>
+        </div>
+        <div id="shiftPreview" class="jam-preview"></div>
+        <div style="background: var(--yellow-50); border: 1px solid var(--yellow-200); padding: 10px 12px; border-radius: var(--radius-md);">
+          <div style="font-size: 11.5px; font-weight: 700; color: var(--yellow-800); margin-bottom: 6px;">Terapkan ke:</div>
+          <label style="display: block; font-size: 12px; margin-bottom: 4px; cursor: pointer;"><input type="radio" name="shiftScope" value="upcoming" checked /> Pertemuan yang belum berlangsung (disarankan)</label>
+          <label style="display: block; font-size: 12px; cursor: pointer;"><input type="radio" name="shiftScope" value="all" /> Semua pertemuan, termasuk yang sudah lewat</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="cancelShiftBtn">Batal</button>
+        <button class="btn btn-primary btn-sm" id="applyShiftBtn">Terapkan Pergeseran</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="sessionModal">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -2371,6 +2432,18 @@ img, svg, video, canvas { max-width: 100%; }
               <input type="date" id="sesFormTanggal" style="width: 100%; padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--neutral-300); font-size: 13px;" required />
             </div>
           </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label class="fld-label">Pilih Jam Kuliah</label>
+              <select id="sesFormJam" class="fld-control"></select>
+            </div>
+            <div>
+              <label class="fld-label">Durasi</label>
+              <select id="sesFormDurasi" class="fld-control"></select>
+            </div>
+          </div>
+          <div id="sesFormJamPreview" class="jam-preview"></div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
@@ -3317,6 +3390,63 @@ const SEED_MATKUL = [
 
   const { appStore, formatDateIndo, formatShortDate, getTodayIso, showToast, showCustomConfirm, escapeHtml, DAYS_ID } = window;
 
+
+  // ===== Slot "Jam ke-N" (1 jam kuliah = 50 menit, mulai 07:10; istirahat 12:10–13:00) =====
+  // Ubah daftar ini jika jam kuliah resmi kampus berbeda.
+  const JAM_SLOTS = ['07:10','08:00','08:50','09:40','10:30','11:20','13:00','13:50','14:40','15:30','16:20','17:10','18:00','18:50'];
+  const JAM_MENIT = 50;
+  const HARI_URUT = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+  const toMin = (t) => { const [h, m] = (t || '0:0').split(':').map(Number); return h * 60 + m; };
+  const fromMin = (n) => String(Math.floor(n / 60) % 24).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
+  const addMin = (t, n) => fromMin(toMin(t) + n);
+  function addDaysIso(iso, n) {
+    const d = new Date(iso + 'T00:00:00');
+    d.setDate(d.getDate() + n);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  // Hubungkan dropdown "Jam ke-N" + "Durasi" dengan input jam mulai/selesai (dua arah)
+  function bindJamPicker(ids) {
+    const $ = (id) => document.getElementById(id);
+    const jam = $(ids.jam), dur = $(ids.dur), mu = $(ids.mulai), se = $(ids.selesai), pv = $(ids.preview);
+    jam.innerHTML = JAM_SLOTS.map((t, i) => `<option value="${i}">Jam ke-${i + 1} • ${t}${i === 6 ? ' (setelah istirahat)' : ''}</option>`).join('') + '<option value="custom">Atur manual…</option>';
+    dur.innerHTML = [1, 2, 3, 4, 5, 6].map(d => `<option value="${d}">${d} jam (${d * JAM_MENIT} menit)</option>`).join('');
+    const preview = () => { if (pv) pv.textContent = (mu.value && se.value) ? `Berlangsung ${mu.value} – ${se.value} WIB` : ''; };
+    const fromSlot = () => {
+      const st = jam.value === 'custom' ? mu.value : JAM_SLOTS[+jam.value];
+      if (!st) return;
+      mu.value = st;
+      se.value = addMin(st, (+dur.value) * JAM_MENIT);
+      preview();
+    };
+    const fromTimes = () => {
+      const i = JAM_SLOTS.indexOf(mu.value);
+      jam.value = i >= 0 ? String(i) : 'custom';
+      const d = (toMin(se.value) - toMin(mu.value)) / JAM_MENIT;
+      if (Number.isInteger(d) && d >= 1 && d <= 6) dur.value = String(d);
+      preview();
+    };
+    jam.onchange = fromSlot; dur.onchange = fromSlot;
+    mu.oninput = fromTimes; se.oninput = fromTimes;
+    return { fromTimes, setDurasi: (n) => { dur.value = String(Math.min(6, Math.max(1, n || 2))); } };
+  }
+
+  // Pindahkan seluruh pertemuan sebuah matkul ke hari & jam baru (tanggal ikut bergeser)
+  function applyMatkulMove(matkul, hari, mulai, selesai, scope) {
+    const oldIdx = HARI_URUT.indexOf(matkul.hariReguler);
+    const newIdx = HARI_URUT.indexOf(hari);
+    const delta = oldIdx >= 0 ? newIdx - oldIdx : 0;
+    const today = getTodayIso();
+    matkul.sesi.forEach(s => {
+      if (scope === 'all' || s.tanggal >= today) {
+        if (delta) s.tanggal = addDaysIso(s.tanggal, delta);
+        s.mulai = mulai;
+        s.selesai = selesai;
+      }
+    });
+    matkul.hariReguler = hari;
+  }
+
   let currentWeekStart = getMonday(new Date());
 
   function getMonday(d) {
@@ -3795,7 +3925,7 @@ const SEED_MATKUL = [
             sItem.innerHTML = `
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                 <span style="font-size: 11px; font-weight: 800; color: var(--teal-800);">${firstSesi.mulai || '07:10'} – ${firstSesi.selesai || '09:40'} WIB</span>
-                <span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 6px; border-radius: 4px;">${m.kode}</span>
+                <span style="display: inline-flex; align-items: center; gap: 6px;"><span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 6px; border-radius: 4px;">${m.kode}</span><button type="button" class="shift-btn" title="Geser hari / jam kuliah" onclick="event.stopPropagation(); window.appViews.openShiftModal('${m.id}')">⇄ Geser</button></span>
               </div>
               <div style="font-size: 13.5px; font-weight: 800; color: var(--neutral-900); margin: 2px 0; line-height: 1.25;">${escapeHtml(m.nama)}</div>
               <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--neutral-600); margin-top: 4px;">
@@ -3907,7 +4037,7 @@ const SEED_MATKUL = [
                 <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(s1.ruang || 'Kelas Kecil')}</span>
               </div>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)" style="flex-shrink: 0; padding: 6px 12px;">Rincian</button>
+            <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;"><button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)" style="padding: 6px 12px;">Rincian</button><button class="btn btn-sm shift-btn-lg" onclick="window.appViews.openShiftModal('${m.id}')">⇄ Geser</button></div>
           `;
           list.appendChild(row);
         });
@@ -3938,7 +4068,7 @@ const SEED_MATKUL = [
               <span style="font-size: 11px; font-weight: 700; color: var(--teal-700);">${m.kode} &bull; Kelas ${m.kelas} &bull; ${m.sks} SKS</span>
               <h4 style="font-size: 15px; font-weight: 800; color: var(--neutral-900);">${escapeHtml(m.nama)}</h4>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Ubah</button>
+            <div style="display: flex; gap: 6px; flex-shrink: 0;"><button class="btn btn-sm shift-btn-lg" onclick="window.appViews.openShiftModal('${m.id}')">⇄ Geser</button><button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Ubah</button></div>
           </div>
           <div style="font-size: 12px; color: var(--neutral-600);">
             Hari Reguler: <strong>${m.hariReguler}</strong> &bull; Total ${totalSesi} Pertemuan
@@ -4251,6 +4381,10 @@ const SEED_MATKUL = [
       document.getElementById('sesFormStatus').value = sesi.status || '';
       document.getElementById('sesFormDosen').value = sesi.dosen || '';
 
+      const picker = bindJamPicker({ jam: 'sesFormJam', dur: 'sesFormDurasi', mulai: 'sesFormMulai', selesai: 'sesFormSelesai', preview: 'sesFormJamPreview' });
+      picker.setDurasi(matkul.sks);
+      picker.fromTimes();
+
       document.getElementById('sessionModal').classList.add('active');
     },
 
@@ -4276,15 +4410,18 @@ const SEED_MATKUL = [
       }
 
       if (moveScope === 'all_future') {
-        // Calculate new weekday from tanggal
+        // Hari baru dihitung dari tanggal yang dipilih; pertemuan mendatang ikut bergeser tanggal & jamnya
         const targetDate = new Date(tanggal + 'T00:00:00');
         const newDayName = DAYS_ID[targetDate.getDay()];
+        const oldIdx = HARI_URUT.indexOf(matkul.hariReguler);
+        const delta = oldIdx >= 0 ? HARI_URUT.indexOf(newDayName) - oldIdx : 0;
         matkul.hariReguler = newDayName;
 
-        // Shift future meetings
         const todayIso = getTodayIso();
         matkul.sesi.forEach((s, idx) => {
-          if (idx >= sesiIndex || s.tanggal >= todayIso) {
+          if (idx === sesiIndex) return;
+          if (idx > sesiIndex || s.tanggal >= todayIso) {
+            if (delta) s.tanggal = addDaysIso(s.tanggal, delta);
             s.mulai = mulai;
             s.selesai = selesai;
             s.ruang = ruang;
@@ -4304,11 +4441,51 @@ const SEED_MATKUL = [
       showToast('success', 'Jadwal Disimpan', `Perubahan jadwal untuk ${matkul.nama} berhasil disimpan.`);
     },
 
+    // Dipanggil saat kartu matkul di-drag ke hari lain: tanya dulu jam keberapa
     shiftMatkulDay(matkul, newDayName) {
-      matkul.hariReguler = newDayName;
-      appStore.save();
-      appRenderer.renderAll();
-      showToast('success', 'Jadwal Digeser', `${matkul.nama} berhasil dipindahkan ke hari ${newDayName}.`);
+      this.openShiftModal(matkul.id, newDayName);
+    },
+
+    openShiftModal(matkulId, dayName) {
+      const matkul = appStore.getActiveMatkul().find(m => m.id === matkulId);
+      if (!matkul) return;
+      const $ = (id) => document.getElementById(id);
+      const today = getTodayIso();
+      const ref = matkul.sesi.find(x => x.tanggal >= today) || matkul.sesi[0] || {};
+
+      $('shiftMatkulName').textContent = `${matkul.nama} (${matkul.kode})`;
+      $('shiftCurrent').textContent = `Jadwal sekarang: ${matkul.hariReguler}, ${ref.mulai || '--:--'} – ${ref.selesai || '--:--'} WIB`;
+      $('shiftHari').innerHTML = HARI_URUT.slice(0, 6).map(h => `<option value="${h}">${h}</option>`).join('');
+      $('shiftHari').value = dayName || matkul.hariReguler;
+      $('shiftMulai').value = ref.mulai || '07:10';
+      $('shiftSelesai').value = ref.selesai || addMin(ref.mulai || '07:10', (matkul.sks || 2) * JAM_MENIT);
+      document.querySelector('input[name="shiftScope"][value="upcoming"]').checked = true;
+
+      const picker = bindJamPicker({ jam: 'shiftJam', dur: 'shiftDurasi', mulai: 'shiftMulai', selesai: 'shiftSelesai', preview: 'shiftPreview' });
+      picker.setDurasi(matkul.sks);
+      picker.fromTimes();
+
+      const close = () => $('shiftModal').classList.remove('active');
+      $('closeShiftModalBtn').onclick = close;
+      $('cancelShiftBtn').onclick = close;
+      $('applyShiftBtn').onclick = () => {
+        const hari = $('shiftHari').value, mulai = $('shiftMulai').value, selesai = $('shiftSelesai').value;
+        const scope = document.querySelector('input[name="shiftScope"]:checked')?.value || 'upcoming';
+        if (!mulai || !selesai || selesai <= mulai) {
+          showToast('error', 'Jam Tidak Valid', 'Jam selesai harus lebih akhir dari jam mulai!');
+          return;
+        }
+        const before = checkScheduleClashes(appStore.getActiveMatkul()).length;
+        applyMatkulMove(matkul, hari, mulai, selesai, scope);
+        appStore.save();
+        close();
+        appRenderer.renderAll();
+        const after = checkScheduleClashes(appStore.getActiveMatkul()).length;
+        showToast(after > before ? 'warning' : 'success',
+          after > before ? 'Jadwal Digeser — Ada Bentrok' : 'Jadwal Digeser',
+          `${matkul.nama} dipindahkan ke ${hari}, ${mulai}–${selesai} WIB.` + (after > before ? ' Cek peringatan bentrok di halaman Jadwal.' : ''));
+      };
+      $('shiftModal').classList.add('active');
     }
   };
 
