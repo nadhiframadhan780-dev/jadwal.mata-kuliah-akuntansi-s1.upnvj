@@ -2,19 +2,56 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Jadwal Kuliah S1 Akuntansi UPNVJ</title>
   <meta name="description" content="Sistem Jadwal Kuliah, Absensi, Nilai &amp; IPK, dan Profil Mahasiswa S1 Akuntansi UPN Veteran Jakarta." />
   <meta name="theme-color" content="#0D9488" />
+  <meta name="application-name" content="Jadwal AKS1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Jadwal AKS1" />
   
-  <!-- Favicon & App Icons (Official UPNVJ Logo) -->
-  <link rel="icon" type="image/png" href="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" />
-  <link rel="shortcut icon" href="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" />
-  <link rel="apple-touch-icon" href="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" />
-  <link rel="manifest" href="/manifest.json" />
+  <!-- Favicon & App Icons (Logo resmi UPNVJ, persegi & proporsional) -->
+  <link rel="icon" type="image/png" sizes="64x64" href="__ICON_FAVICON__" />
+  <link rel="apple-touch-icon" sizes="180x180" href="__ICON_APPLE__" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <script>
+    // PWA bootstrap: jika manifest.json tidak ikut di-hosting (file HTML tunggal),
+    // buat manifest otomatis lengkap dengan logo UPNVJ agar ikon install tidak jadi huruf "J".
+    (function () {
+      var ICONS = { i192: "__ICON_192__", i512: "__ICON_512__", mask: "__ICON_MASK__" };
+      function inject() {
+        var base = location.href.split('#')[0].split('?')[0];
+        var scope = base.substring(0, base.lastIndexOf('/') + 1);
+        var m = {
+          id: scope, name: 'Jadwal Kuliah S1 Akuntansi UPNVJ', short_name: 'Jadwal AKS1',
+          description: 'Jadwal Kuliah, Absensi, Nilai & IPK Mahasiswa S1 Akuntansi UPN Veteran Jakarta',
+          lang: 'id', start_url: base, scope: scope, display: 'standalone', orientation: 'any',
+          theme_color: '#0D9488', background_color: '#F0FDFA', categories: ['education'],
+          icons: [
+            { src: ICONS.i192, sizes: '192x192', type: 'image/png', purpose: 'any' },
+            { src: ICONS.i512, sizes: '512x512', type: 'image/png', purpose: 'any' },
+            { src: ICONS.mask, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          ]
+        };
+        var url = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/manifest+json' }));
+        var link = document.querySelector('link[rel="manifest"]');
+        if (!link) { link = document.createElement('link'); link.rel = 'manifest'; document.head.appendChild(link); }
+        link.href = url;
+      }
+      if (!/^https?:$/.test(location.protocol)) return;
+      fetch('manifest.json', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (j) { if (!j.icons || !j.icons.length) inject(); })
+        .catch(inject);
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('sw.js').catch(function () {});
+        });
+      }
+    })();
+  </script>
   
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,8 +80,8 @@
   <div class="print-header" style="display: none;">
     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0D9488; padding-bottom: 12px; margin-bottom: 16px;">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <img src="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" alt="UPNVJ" style="height: 50px;" onerror="this.style.display='none'">
-        <img src="https://feb.upnvj.ac.id/wp-content/uploads/2023/06/AK-s1-220x220.png" alt="S1 Akuntansi" style="height: 50px;" onerror="this.style.display='none'">
+        <img src="__LOGO_UPNVJ_BASE64__" alt="UPNVJ" style="height: 50px;" onerror="this.style.display='none'">
+        <img src="__LOGO_AK_BASE64__" alt="S1 Akuntansi" style="height: 50px;" onerror="this.style.display='none'">
         <div>
           <h2 style="font-size: 16px; margin: 0; color: #0D9488; font-weight: 800;">UNIVERSITAS PEMBANGUNAN NASIONAL VETERAN JAKARTA</h2>
           <p style="font-size: 12px; margin: 2px 0 0 0; color: #475569;">FAKULTAS EKONOMI DAN BISNIS — PROGRAM STUDI S1 AKUNTANSI</p>
@@ -455,7 +492,7 @@
               <span style="font-size: 12px; color: var(--neutral-500);">Untuk semester yang detail matkulnya tidak diinput</span>
             </div>
             <div style="overflow-x: auto;">
-              <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+              <table style="width: 100%; min-width: 520px; border-collapse: collapse; font-size: 13px; text-align: left;">
                 <thead>
                   <tr style="border-bottom: 2px solid var(--neutral-200); color: var(--neutral-600); font-size: 11.5px;">
                     <th style="padding: 8px 12px;">Semester</th>
@@ -518,8 +555,8 @@
               <!-- Holographic / Chip decoration -->
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 14px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <img src="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" alt="UPNVJ" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback\'>UPN</div>'">
-                  <img src="https://feb.upnvj.ac.id/wp-content/uploads/2023/06/AK-s1-220x220.png" alt="S1 AK" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback ak\'>AK</div>'">
+                  <img src="__LOGO_UPNVJ_BASE64__" alt="UPNVJ" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback\'>UPN</div>'">
+                  <img src="__LOGO_AK_BASE64__" alt="S1 AK" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback ak\'>AK</div>'">
                   <div>
                     <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.5px; color: var(--yellow-400);">UPN VETERAN JAKARTA</div>
                     <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 600;">FAKULTAS EKONOMI &amp; BISNIS</div>

@@ -70,10 +70,20 @@ Untuk mengaktifkan fitur PWA penuh (Install to Home Screen di Android & Desktop)
 -->
 `;
 
+const dataUri = (f) => `data:image/png;base64,${fs.readFileSync(path.join(root, 'public', f)).toString('base64')}`;
+const iconMap = {
+  __ICON_FAVICON__: dataUri('favicon.png'),
+  __ICON_APPLE__: dataUri('apple-touch-icon.png'),
+  __ICON_192__: dataUri('pwa-192x192.png'),
+  __ICON_512__: dataUri('pwa-512x512.png'),
+  __ICON_MASK__: dataUri('pwa-maskable-512x512.png')
+};
+
 let finalHtml = template.replace('/* CSS_PLACEHOLDER */', css);
 finalHtml = finalHtml.replace('// JS_PLACEHOLDER', combinedJs);
 finalHtml = finalHtml.replaceAll('__LOGO_UPNVJ_BASE64__', upnLogoBase64);
 finalHtml = finalHtml.replaceAll('__LOGO_AK_BASE64__', akLogoBase64);
+for (const [k, v] of Object.entries(iconMap)) finalHtml = finalHtml.replaceAll(k, v);
 finalHtml = finalHtml.replace('<!DOCTYPE html>', '<!DOCTYPE html>' + pwaComment);
 
 // Write to root: jadwal-kuliah-aks1.upnvj.html

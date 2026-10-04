@@ -1225,3 +1225,54 @@ body {
   }
 }
 
+
+
+/* =====================================================================
+   MOBILE FIXES v2 — perbaikan tampilan HP (anti-overflow, safe-area, dvh)
+   ===================================================================== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { max-width: 100%; overflow-x: hidden; }
+img, svg, video, canvas { max-width: 100%; }
+
+/* Akar masalah: flex child default min-width:auto membuat halaman melebar */
+.main-wrapper { min-width: 0; max-width: 100%; }
+.content-body, .page-view, .card { min-width: 0; max-width: 100%; }
+.topbar { min-width: 0; max-width: 100%; }
+
+/* 100vh di HP tidak memperhitungkan address bar → pakai dvh */
+@supports (height: 100dvh) {
+  body, .app-layout, .main-wrapper { min-height: 100dvh; }
+}
+
+/* Tabel lebar scroll di dalam kartu, bukan mendorong halaman */
+.card:has(> table), .card:has(table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+
+@media (max-width: 1024px) {
+  .bottom-nav { height: calc(64px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .main-wrapper { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  .topbar { padding-top: env(safe-area-inset-top, 0px); height: calc(56px + env(safe-area-inset-top, 0px)); }
+  .modal-dialog { max-height: 90vh; max-height: 90dvh; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .modal-body { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+}
+@media (max-width: 768px) {
+  /* Cegah iOS auto-zoom saat fokus ke input */
+  input, select, textarea { font-size: 16px !important; }
+  button, .btn, .topbar-btn, .bottom-nav-item { touch-action: manipulation; }
+  .week-days-grid, .jadwal-day-tabs, .jadwal-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .week-days-grid::-webkit-scrollbar { display: none; }
+  #printPreviewModal .modal-header { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+  #printPreviewModal .modal-header > div:last-child { width: 100%; justify-content: space-between; }
+  #printPreviewModal .modal-header .btn { flex: 1; justify-content: center; }
+  #printPreviewModal .modal-body { padding: 12px !important; }
+}
+
+/* Pratinjau kertas A4: selalu 794px lalu diskalakan agar pas layar (hasil sama seperti laptop) */
+#printSheetViewport { width: 100%; overflow: hidden; margin: 0 auto; }
+#printableScheduleSheet.is-scaled { width: 794px !important; max-width: none !important; transform-origin: top left; box-sizing: border-box; }
+@media print {
+  #printSheetViewport { height: auto !important; overflow: visible !important; }
+  #printableScheduleSheet.is-scaled { transform: none !important; width: 100% !important; }
+}
+
+.btn svg { flex-shrink: 0; }

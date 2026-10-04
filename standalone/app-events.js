@@ -105,6 +105,31 @@
     const undoBtn = document.getElementById('undoBtn');
     if (undoBtn) undoBtn.onclick = () => appStore.undo();
 
+    // Skalakan lembar A4 (794px) agar pas di layar HP, tampilan tetap sama seperti laptop
+    function fitPrintSheet() {
+      const sheet = document.getElementById('printableScheduleSheet');
+      if (!sheet) return;
+      const A4_W = 794;
+      let vp = document.getElementById('printSheetViewport');
+      if (!vp) {
+        vp = document.createElement('div');
+        vp.id = 'printSheetViewport';
+        sheet.parentNode.insertBefore(vp, sheet);
+        vp.appendChild(sheet);
+      }
+      sheet.classList.add('is-scaled');
+      const host = vp.parentElement;
+      const cs = getComputedStyle(host);
+      const avail = host.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const scale = Math.min(1, Math.max(0.3, avail / A4_W));
+      sheet.style.transform = scale < 1 ? `scale(${scale})` : 'none';
+      vp.style.width = Math.round(A4_W * scale) + 'px';
+      vp.style.height = Math.ceil(sheet.offsetHeight * scale) + 'px';
+    }
+    window.addEventListener('resize', () => {
+      if (document.getElementById('printPreviewModal')?.classList.contains('active')) fitPrintSheet();
+    });
+
     // Print & PDF Official Preview Handlers
     function populateAndOpenPrintModal() {
       const p = appStore.state.profile;
@@ -162,7 +187,7 @@
         tr.innerHTML = `
           <td style="padding: 7px 5px; text-align: center; border: 1px solid #E2E8F0; font-weight: 700;">${idx + 1}</td>
           <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-weight: 700; color: #0D9488;">${m.hariReguler}</td>
-          <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-weight: 600;">${s0.mulai || '--:--'} – ${s0.selesai || '--:--'}</td>
+          <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-weight: 600; white-space: nowrap;">${s0.mulai || '--:--'} – ${s0.selesai || '--:--'}</td>
           <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-family: monospace; font-weight: 700; color: #0F766E;">${m.kode}</td>
           <td style="padding: 7px 10px; border: 1px solid #E2E8F0; font-weight: 700; color: #0F172A;">${escapeHtml(m.nama)}</td>
           <td style="padding: 7px 5px; text-align: center; border: 1px solid #E2E8F0; font-weight: 700;">${m.sks}</td>
@@ -177,6 +202,7 @@
       document.getElementById('printSheetTotalSksFoot').textContent = `${totalSks}`;
 
       document.getElementById('printPreviewModal').classList.add('active');
+      requestAnimationFrame(() => requestAnimationFrame(fitPrintSheet));
     }
 
     // Attach trigger to Topbar Print Button
@@ -205,38 +231,55 @@
       };
     }
 
-    // Modal Download PDF using html2pdf
+    // Modal Download PDF — dirender dari salinan A4 (794px) di luar layar,
+    // sehingga hasilnya identik di HP maupun laptop (tidak ikut ukuran layar).
     const modalDownloadPdf = document.getElementById('pdfDownloadTriggerBtn');
     if (modalDownloadPdf) {
-      modalDownloadPdf.onclick = () => {
-        const element = document.getElementById('printableScheduleSheet');
+      modalDownloadPdf.onclick = async () => {
+        const source = document.getElementById('printableScheduleSheet');
         const p = appStore.state.profile;
         const sem = appStore.state.viewingSemester;
         const cleanName = (p.nama || 'Mahasiswa').replace(/[^a-zA-Z0-9]/g, '_');
         const filename = `Jadwal_Kuliah_UPNVJ_${p.nim}_${cleanName}_Sem${sem}.pdf`;
 
-        showToast('info', 'Menyiapkan PDF...', 'Sistem sedang memproses dokumen PDF beresolusi tinggi.');
-
-        if (window.html2pdf) {
-          const opt = {
-            margin: [8, 8, 8, 8],
-            filename: filename,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2.2, useCORS: true, allowTaint: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
-
-          html2pdf().set(opt).from(element).save().then(() => {
-            showToast('success', 'PDF Berhasil Diunduh!', `Dokumen ${filename} telah tersimpan.`);
-          }).catch((err) => {
-            console.error('PDF error:', err);
-            showToast('warning', 'Membuka Print PDF', 'Mengalihkan ke dialog cetak browser (Simpan sebagai PDF).');
-            window.print();
-          });
-        } else {
-          // Fallback to native print to PDF
-          showToast('info', 'Cetak ke PDF', 'Gunakan opsi "Save as PDF" / "Simpan sebagai PDF" pada dialog cetak.');
+        if (!window.html2pdf) {
+          showToast('info', 'Cetak ke PDF', 'Gunakan opsi "Simpan sebagai PDF" pada dialog cetak.');
           window.print();
+          return;
+        }
+        showToast('info', 'Menyiapkan PDF...', 'Sistem sedang memproses dokumen PDF beresolusi tinggi.');
+        modalDownloadPdf.disabled = true;
+
+        const holder = document.createElement('div');
+        holder.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;pointer-events:none;';
+        const clone = source.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.classList.remove('is-scaled');
+        Object.assign(clone.style, {
+          width: '794px', maxWidth: 'none', margin: '0', transform: 'none',
+          boxShadow: 'none', borderRadius: '0', boxSizing: 'border-box', padding: '28px 34px'
+        });
+        holder.appendChild(clone);
+        document.body.appendChild(holder);
+
+        try {
+          if (document.fonts && document.fonts.ready) await document.fonts.ready;
+          await html2pdf().set({
+            margin: [6, 0, 6, 0],
+            filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794, scrollX: 0, scrollY: 0, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
+          }).from(clone).save();
+          showToast('success', 'PDF Berhasil Diunduh!', `Dokumen ${filename} telah tersimpan.`);
+        } catch (err) {
+          console.error('PDF error:', err);
+          showToast('warning', 'Membuka Print PDF', 'Mengalihkan ke dialog cetak browser (Simpan sebagai PDF).');
+          window.print();
+        } finally {
+          holder.remove();
+          modalDownloadPdf.disabled = false;
         }
       };
     }
