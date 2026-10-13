@@ -66,9 +66,12 @@
           <img src="__LOGO_UPNVJ_BASE64__" alt="Logo UPNVJ" width="38" height="38" style="height: 38px; width: auto; object-fit: contain;" />
           <img src="__LOGO_AK_BASE64__" alt="Logo S1 Akuntansi" width="38" height="38" style="height: 38px; width: auto; object-fit: contain;" />
         </div>
-        <div class="sidebar-brand-text">
+        <div class="sidebar-brand-text" style="flex: 1;">
           <h1 style="font-size: 13px; font-weight: 800; color: var(--teal-900); line-height: 1.25;">Jadwal Kuliah S1 Akuntansi UPNVJ</h1>
         </div>
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Tutup Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
 
       <div class="semester-selector-box">
@@ -137,6 +140,8 @@
         </div>
       </div>
     </aside>
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <!-- Main Wrapper -->
     <div class="main-wrapper">
@@ -278,17 +283,28 @@
           </div>
         </section>
 
-        <!-- 2. JADWAL (TERSTRUKTUR PER HARI) -->
+        <!-- 2. JADWAL (TERSTRUKTUR PER HARI & MODEL TAMPILAN) -->
         <section class="page-view" id="view-jadwal">
           <div class="jadwal-page-header">
             <div>
-              <h2 style="font-size: 20px; font-weight: 800; color: var(--teal-900);">Struktur Jadwal Kuliah</h2>
-              <p style="font-size: 13px; color: var(--neutral-500);">Kelola seluruh mata kuliah dan sesi pertemuan semester aktif</p>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h2 style="font-size: 20px; font-weight: 800; color: var(--teal-900);">Struktur Jadwal Kuliah</h2>
+                <span class="badge" style="background: var(--teal-100); color: var(--teal-800); font-weight: 800; font-size: 11px;">Semester 1 Ganjil</span>
+              </div>
+              <p style="font-size: 13px; color: var(--neutral-500); margin-top: 2px;">Kelola matkul, model tampilan jadwal, dan pergeseran urutan jam yang rapi</p>
             </div>
             <div class="jadwal-header-actions">
+              <button class="btn btn-secondary btn-sm" id="btnAutoSortAllHours" title="Urutkan jam seluruh hari agar rapi dan berurutan" style="font-weight: 700;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                <span>✨ Urutkan Jam Otomatis</span>
+              </button>
+              <button class="btn btn-secondary btn-sm" id="openGeserJadwalModalBtn" title="Geser hari dan urutan jam mata kuliah" style="font-weight: 700;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <span>🔁 Geser Jadwal</span>
+              </button>
               <button class="btn btn-accent btn-sm" id="openPrintPdfModalBtn" style="font-weight: 700;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                <span>Cetak / Unduh PDF</span>
+                <span>Cetak / PDF</span>
               </button>
               <button class="btn btn-primary btn-sm" id="openAddMatkulModalBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
@@ -297,14 +313,33 @@
             </div>
           </div>
 
-          <!-- Tabs / Segmented Control -->
+          <!-- Model Tampilan Selector & Filter Bar -->
           <div class="jadwal-filter-bar">
-            <!-- View Mode Tabs -->
-            <div class="jadwal-tab-control">
-              <button class="btn btn-sm jadwal-tab-btn active" data-tab="mingguan">Mingguan</button>
-              <button class="btn btn-sm jadwal-tab-btn" data-tab="perhari">Per Hari</button>
-              <button class="btn btn-sm jadwal-tab-btn" data-tab="permatkul">Per Matkul</button>
-              <button class="btn btn-sm jadwal-tab-btn" data-tab="semuapertemuan">Semua Sesi</button>
+            <!-- Model Tampilan Group -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 12.5px; font-weight: 800; color: var(--teal-900); display: flex; align-items: center; gap: 5px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                Model Tampilan:
+              </span>
+              <!-- View Mode Tabs (Desktop / Tablet) -->
+              <div class="jadwal-tab-control" id="jadwalModelTabsDesktop">
+                <button class="btn btn-sm jadwal-tab-btn active" data-tab="mingguan" title="Tampilan kartu per hari dengan drag & drop">📅 Kolom Mingguan</button>
+                <button class="btn btn-sm jadwal-tab-btn" data-tab="matriks" title="Tampilan matriks jam 07:00 - 18:00 seluruh hari">📊 Matriks Jam</button>
+                <button class="btn btn-sm jadwal-tab-btn" data-tab="timeline" title="Tampilan urutan linimasa jam per hari">⏱️ Urutan Jam</button>
+                <button class="btn btn-sm jadwal-tab-btn" data-tab="kalender" title="Tampilan kalender bulanan semester">🗓️ Kalender</button>
+                <button class="btn btn-sm jadwal-tab-btn" data-tab="permatkul" title="Tampilan kartu per mata kuliah & progres">📚 Per Matkul</button>
+                <button class="btn btn-sm jadwal-tab-btn" data-tab="semuapertemuan" title="Tampilan tabel administratif seluruh sesi">📋 Tabel Sesi</button>
+              </div>
+
+              <!-- Mobile Dropdown Selector -->
+              <select id="jadwalMobileModelSelect" class="jadwal-select-field jadwal-model-mobile-select" style="font-weight: 700;">
+                <option value="mingguan">📅 Model: Kolom Mingguan</option>
+                <option value="matriks">📊 Model: Matriks Jam SIAKAD</option>
+                <option value="timeline">⏱️ Model: Urutan Jam Linimasa</option>
+                <option value="kalender">🗓️ Model: Kalender Bulanan</option>
+                <option value="permatkul">📚 Model: Kartu Per Matkul</option>
+                <option value="semuapertemuan">📋 Model: Tabel Sesi Lengkap</option>
+              </select>
             </div>
 
             <!-- Filters -->
@@ -882,6 +917,109 @@
   </nav>
 
   <!-- Modals & Overlays -->
+
+  <!-- Modal Pergeseran Jadwal & Urutan Jam Otomatis -->
+  <div class="modal-overlay" id="modalGeserJadwal">
+    <div class="modal-dialog" style="max-width: 540px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="background: var(--teal-100); color: var(--teal-800); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </div>
+          <div>
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--neutral-900); margin: 0;">Pergeseran Jadwal Kuliah</h3>
+            <p style="font-size: 11.5px; color: var(--neutral-500); margin: 0;">Pindahkan hari dan sesuaikan urutan jam secara rapi dan otomatis</p>
+          </div>
+        </div>
+        <button class="modal-close" id="closeGeserJadwalModalBtn">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 18px 20px;">
+        <form id="geserJadwalForm" style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- 1. Pilih Matkul -->
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--neutral-700); margin-bottom: 4px;">Pilih Mata Kuliah yang Ingin Digeser</label>
+            <select id="geserMatkulSelect" class="jadwal-select-field" style="width: 100%; font-size: 13px; font-weight: 700; padding: 10px;"></select>
+          </div>
+
+          <!-- Current info badge -->
+          <div id="geserCurrentInfo" style="background: var(--neutral-100); border-radius: var(--radius-md); padding: 10px 14px; font-size: 12px; color: var(--neutral-700);">
+            <!-- Dynamic info -->
+          </div>
+
+          <!-- 2. Pilih Hari Tujuan -->
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: var(--neutral-700); margin-bottom: 6px;">Pindahkan ke Hari Tujuan</label>
+            <div id="geserDayPills" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+              <button type="button" class="btn btn-sm geser-day-pill" data-day="Senin">Senin</button>
+              <button type="button" class="btn btn-sm geser-day-pill" data-day="Selasa">Selasa</button>
+              <button type="button" class="btn btn-sm geser-day-pill" data-day="Rabu">Rabu</button>
+              <button type="button" class="btn btn-sm geser-day-pill" data-day="Kamis">Kamis</button>
+              <button type="button" class="btn btn-sm geser-day-pill" data-day="Jumat">Jumat</button>
+              <button type="button" class="btn btn-sm geser-day-pill" data-day="Sabtu">Sabtu</button>
+            </div>
+            <input type="hidden" id="geserTargetDay" value="Senin" />
+          </div>
+
+          <!-- 3. Mode Penyesuaian Jam -->
+          <div style="background: var(--teal-50); border: 1px solid var(--teal-200); border-radius: var(--radius-md); padding: 12px 14px;">
+            <div style="font-size: 12px; font-weight: 800; color: var(--teal-900); margin-bottom: 8px;">Penyesuaian Urutan Jam:</div>
+            
+            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--neutral-800); margin-bottom: 10px; cursor: pointer;">
+              <input type="radio" name="geserTimeMode" value="auto_sequential" checked style="margin-top: 2px;" />
+              <div>
+                <strong>✨ Otomatis Berurutan Rapi (Direkomendasikan)</strong>
+                <div style="font-size: 11px; color: var(--neutral-500);">Menempatkan matkul ini otomatis berurutan setelah mata kuliah lain di hari tujuan tanpa jeda acak atau bentrok jam.</div>
+              </div>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--neutral-800); margin-bottom: 10px; cursor: pointer;">
+              <input type="radio" name="geserTimeMode" value="choose_slot" style="margin-top: 2px;" />
+              <div style="width: 100%;">
+                <strong>Pilih Slot Jam Standar Kuliah:</strong>
+                <select id="geserSlotSelect" class="jadwal-select-field" style="width: 100%; margin-top: 4px; font-size: 11.5px; padding: 6px;" disabled>
+                  <option value="07:10|09:40">Sesi 1 Pagi (07:10 – 09:40 WIB / 3 SKS)</option>
+                  <option value="07:10|08:50">Sesi 1 Pagi Pendek (07:10 – 08:50 WIB / 2 SKS)</option>
+                  <option value="08:50|11:20">Sesi 2 Pagi Lanjut (08:50 – 11:20 WIB / 3 SKS)</option>
+                  <option value="09:50|12:20">Sesi 2 Siang Awal (09:50 – 12:20 WIB / 3 SKS)</option>
+                  <option value="13:00|15:30">Sesi 3 Siang (13:00 – 15:30 WIB / 3 SKS)</option>
+                  <option value="13:00|14:40">Sesi 3 Siang Pendek (13:00 – 14:40 WIB / 2 SKS)</option>
+                  <option value="15:40|18:10">Sesi 4 Sore (15:40 – 18:10 WIB / 3 SKS)</option>
+                </select>
+              </div>
+            </label>
+
+            <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--neutral-800); cursor: pointer;">
+              <input type="radio" name="geserTimeMode" value="custom_time" style="margin-top: 2px;" />
+              <div>
+                <strong>Jam Kustom:</strong>
+                <div id="geserCustomTimeBox" style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                  <input type="time" id="geserCustomMulai" value="07:10" class="jadwal-select-field" style="padding: 4px 8px; font-size: 12px;" disabled />
+                  <span>–</span>
+                  <input type="time" id="geserCustomSelesai" value="09:40" class="jadwal-select-field" style="padding: 4px 8px; font-size: 12px;" disabled />
+                  <span style="font-size: 11px; color: var(--neutral-500);">WIB</span>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- 4. Dynamic Live Preview Box -->
+          <div>
+            <div style="font-size: 11.5px; font-weight: 700; color: var(--neutral-600); margin-bottom: 4px;">Pratinjau Urutan Jam di Hari Tujuan:</div>
+            <div id="geserPreviewList" style="background: #ffffff; border: 1px solid var(--neutral-200); border-radius: var(--radius-md); padding: 10px 12px; max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+              <!-- Dynamic sequence preview -->
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" id="cancelGeserJadwalBtn">Batal</button>
+        <button class="btn btn-primary btn-sm" id="applyGeserJadwalBtn" style="font-weight: 800;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Terapkan Pergeseran &amp; Urutkan Jam</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 1. Modal Edit / Tambah Sesi & Pindah Jadwal -->
   <div class="modal-overlay" id="sessionModal">

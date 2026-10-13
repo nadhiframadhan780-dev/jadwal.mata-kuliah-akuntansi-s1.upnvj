@@ -34,19 +34,50 @@
       });
 
       // Close mobile sidebar if open
-      document.getElementById('sidebar').classList.remove('open');
+      closeMobileSidebar();
 
       // Re-render relevant view
       appRenderer.renderAll();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function openMobileSidebar() {
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('sidebarBackdrop');
+      if (sb) sb.classList.add('open');
+      if (bd) bd.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileSidebar() {
+      const sb = document.getElementById('sidebar');
+      const bd = document.getElementById('sidebarBackdrop');
+      if (sb) sb.classList.remove('open');
+      if (bd) bd.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
     // Mobile sidebar toggle
     const mobileBtn = document.getElementById('mobileMenuBtn');
     if (mobileBtn) {
       mobileBtn.onclick = () => {
-        document.getElementById('sidebar').classList.toggle('open');
+        const sb = document.getElementById('sidebar');
+        if (sb && sb.classList.contains('open')) {
+          closeMobileSidebar();
+        } else {
+          openMobileSidebar();
+        }
       };
+    }
+
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+    if (sidebarCloseBtn) {
+      sidebarCloseBtn.onclick = closeMobileSidebar;
+    }
+
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    if (sidebarBackdrop) {
+      sidebarBackdrop.onclick = closeMobileSidebar;
     }
 
     // Semester Selector Change
@@ -74,9 +105,10 @@
       appRenderer.renderBeranda();
     };
 
-    // Jadwal Tab Buttons
+    // Jadwal Tab Buttons (Model Tampilan)
     document.querySelectorAll('.jadwal-tab-btn').forEach(btn => {
       btn.onclick = () => {
+        const tab = btn.getAttribute('data-tab');
         document.querySelectorAll('.jadwal-tab-btn').forEach(b => {
           b.classList.remove('active');
           b.style.background = 'transparent';
@@ -85,21 +117,115 @@
         });
         btn.classList.add('active');
         btn.style.background = '#ffffff';
-        btn.style.color = 'var(--teal-800)';
-        btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-        appRenderer.renderJadwal(btn.getAttribute('data-tab'));
+        btn.style.color = 'var(--teal-900)';
+        btn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.1)';
+        appRenderer.renderJadwal(tab);
       };
     });
 
+    // Mobile Model Tampilan Dropdown
+    const mobileModelSel = document.getElementById('jadwalMobileModelSelect');
+    if (mobileModelSel) {
+      mobileModelSel.onchange = (e) => {
+        appRenderer.renderJadwal(e.target.value);
+      };
+    }
+
+    // Auto Sort All Schedules
+    const btnAutoSortAll = document.getElementById('btnAutoSortAllHours');
+    if (btnAutoSortAll) {
+      btnAutoSortAll.onclick = () => {
+        appViews.alignAllSchedulesSequentially();
+      };
+    }
+
+    // Geser Jadwal Modal Triggers & Controls
+    const btnOpenGeser = document.getElementById('openGeserJadwalModalBtn');
+    if (btnOpenGeser) {
+      btnOpenGeser.onclick = () => {
+        appViews.openGeserJadwalModal();
+      };
+    }
+
+    const modalGeser = document.getElementById('modalGeserJadwal');
+    const closeGeserBtn = document.getElementById('closeGeserJadwalModalBtn');
+    const cancelGeserBtn = document.getElementById('cancelGeserJadwalBtn');
+    if (closeGeserBtn && modalGeser) closeGeserBtn.onclick = () => modalGeser.classList.remove('active');
+    if (cancelGeserBtn && modalGeser) cancelGeserBtn.onclick = () => modalGeser.classList.remove('active');
+
+    const geserMatkulSelect = document.getElementById('geserMatkulSelect');
+    if (geserMatkulSelect) {
+      geserMatkulSelect.onchange = () => {
+        const selId = geserMatkulSelect.value;
+        const allMatkul = appStore.getActiveMatkul();
+        const m = allMatkul.find(item => item.id === selId);
+        if (m) {
+          const targetDayInput = document.getElementById('geserTargetDay');
+          if (targetDayInput) targetDayInput.value = m.hariReguler;
+          document.querySelectorAll('.geser-day-pill').forEach(pill => {
+            const isMatch = pill.getAttribute('data-day') === m.hariReguler;
+            pill.classList.toggle('active', isMatch);
+            pill.style.background = isMatch ? 'var(--teal-600)' : 'var(--neutral-100)';
+            pill.style.color = isMatch ? '#ffffff' : 'var(--neutral-700)';
+          });
+        }
+        appViews.updateGeserPreview();
+      };
+    }
+
+    document.querySelectorAll('.geser-day-pill').forEach(pill => {
+      pill.onclick = () => {
+        document.querySelectorAll('.geser-day-pill').forEach(p => {
+          p.classList.remove('active');
+          p.style.background = 'var(--neutral-100)';
+          p.style.color = 'var(--neutral-700)';
+        });
+        pill.classList.add('active');
+        pill.style.background = 'var(--teal-600)';
+        pill.style.color = '#ffffff';
+        const targetDayInput = document.getElementById('geserTargetDay');
+        if (targetDayInput) targetDayInput.value = pill.getAttribute('data-day');
+        appViews.updateGeserPreview();
+      };
+    });
+
+    document.querySelectorAll('input[name="geserTimeMode"]').forEach(radio => {
+      radio.onchange = () => {
+        const val = radio.value;
+        const slotSel = document.getElementById('geserSlotSelect');
+        const customMulai = document.getElementById('geserCustomMulai');
+        const customSelesai = document.getElementById('geserCustomSelesai');
+        if (slotSel) slotSel.disabled = val !== 'choose_slot';
+        if (customMulai) customMulai.disabled = val !== 'custom_time';
+        if (customSelesai) customSelesai.disabled = val !== 'custom_time';
+        appViews.updateGeserPreview();
+      };
+    });
+
+    const geserSlotSel = document.getElementById('geserSlotSelect');
+    if (geserSlotSel) geserSlotSel.onchange = () => appViews.updateGeserPreview();
+
+    const applyGeserBtn = document.getElementById('applyGeserJadwalBtn');
+    if (applyGeserBtn) {
+      applyGeserBtn.onclick = (e) => {
+        e.preventDefault();
+        appViews.applyGeserJadwal();
+      };
+    }
+
     // Jadwal Search & Filter
-    document.getElementById('jadwalSearchInput').oninput = () => {
-      const activeTab = document.querySelector('.jadwal-tab-btn.active')?.getAttribute('data-tab') || 'mingguan';
-      appRenderer.renderJadwal(activeTab);
-    };
-    document.getElementById('jadwalFilterRuang').onchange = () => {
-      const activeTab = document.querySelector('.jadwal-tab-btn.active')?.getAttribute('data-tab') || 'mingguan';
-      appRenderer.renderJadwal(activeTab);
-    };
+    const searchInput = document.getElementById('jadwalSearchInput');
+    if (searchInput) {
+      searchInput.oninput = () => {
+        appRenderer.renderJadwal();
+      };
+    }
+    const filterRuang = document.getElementById('jadwalFilterRuang');
+    if (filterRuang) {
+      filterRuang.onchange = () => {
+        appRenderer.renderJadwal();
+      };
+    }
 
     // Undo Button
     const undoBtn = document.getElementById('undoBtn');

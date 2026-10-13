@@ -904,6 +904,383 @@ body {
   box-shadow: 0 2px 6px rgba(225, 29, 72, 0.3);
 }
 
+/* Base Styles for Struktur Jadwal Kuliah & View Models */
+.jadwal-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.jadwal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jadwal-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  background: #ffffff;
+  padding: 12px 18px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--neutral-200);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+.jadwal-tab-control {
+  display: inline-flex;
+  background: var(--neutral-100);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  gap: 4px;
+}
+.jadwal-tab-control .btn {
+  border: none;
+  background: transparent;
+  color: var(--neutral-600);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.jadwal-tab-control .btn:hover {
+  color: var(--neutral-900);
+}
+.jadwal-tab-control .btn.active {
+  background: #ffffff;
+  color: var(--teal-900);
+  font-weight: 800;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.jadwal-filter-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.jadwal-search-field {
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-300);
+  font-size: 13px;
+  width: 210px;
+  outline: none;
+  background: #ffffff;
+  color: var(--neutral-900);
+  transition: all 0.15s ease;
+}
+.jadwal-search-field:focus {
+  border-color: var(--teal-600);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+.jadwal-select-field {
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-300);
+  font-size: 13px;
+  outline: none;
+  background: #ffffff;
+  color: var(--neutral-800);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.jadwal-select-field:focus {
+  border-color: var(--teal-600);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+/* Model Tampilan Bar */
+.jadwal-model-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.jadwal-model-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--neutral-700);
+}
+.jadwal-model-pills {
+  display: inline-flex;
+  background: #ffffff;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 3px;
+  gap: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.jadwal-model-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--neutral-600);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.jadwal-model-btn:hover {
+  color: var(--neutral-900);
+  background: var(--neutral-50);
+}
+.jadwal-model-btn.active {
+  background: linear-gradient(135deg, var(--teal-600), var(--teal-700));
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+}
+
+/* Geser Day Pills */
+.geser-day-pill {
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-300);
+  background: var(--neutral-100);
+  color: var(--neutral-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+.geser-day-pill:hover {
+  background: var(--teal-50);
+  color: var(--teal-900);
+  border-color: var(--teal-300);
+}
+.geser-day-pill.active {
+  background: var(--teal-600) !important;
+  color: #ffffff !important;
+  border-color: var(--teal-700) !important;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3);
+}
+
+/* Day Tabs / Pills (Desktop & Mobile) */
+.jadwal-days-nav, .jadwal-mobile-days-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 4px 0;
+}
+.jadwal-day-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 1px solid var(--neutral-300);
+  background: #ffffff;
+  color: var(--neutral-700);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  user-select: none;
+}
+.jadwal-day-tab-btn:hover {
+  background: var(--neutral-50);
+  border-color: var(--teal-400);
+  color: var(--teal-900);
+}
+.jadwal-day-tab-btn.active {
+  background: linear-gradient(135deg, var(--teal-600), var(--teal-700)) !important;
+  color: #ffffff !important;
+  border-color: var(--teal-700) !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3) !important;
+  font-weight: 800;
+}
+.jadwal-day-tab-btn .badge-pill {
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 9999px;
+}
+.jadwal-day-tab-btn.active .badge-pill {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Clash Alert Box & Auto-Resolve Action */
+.clash-alert-box {
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+  padding: 14px 18px;
+  border-radius: var(--radius-xl);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.08);
+}
+.btn-resolve-clash {
+  background: linear-gradient(135deg, #be123c, #9f1239);
+  color: #ffffff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(190, 18, 60, 0.3);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.btn-resolve-clash:hover {
+  background: linear-gradient(135deg, #9f1239, #881337);
+  transform: translateY(-1px);
+}
+
+/* Quick Re-Order Button in Day Cards */
+.btn-reorder-day {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--teal-700);
+  background: var(--teal-50);
+  border: 1px solid var(--teal-200);
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-reorder-day:hover {
+  background: var(--teal-600);
+  color: #ffffff;
+}
+
+/* Timetable Matrix (Model Matriks SIAKAD) */
+.matrix-table-wrap {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--neutral-200);
+  box-shadow: var(--card-shadow);
+  overflow-x: auto;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.matrix-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+  min-width: 820px;
+}
+.matrix-th {
+  background: var(--teal-50);
+  color: var(--teal-900);
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px 12px;
+  text-align: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--teal-200);
+}
+.matrix-time-th {
+  background: var(--neutral-100);
+  color: var(--neutral-700);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 10px 8px;
+  text-align: center;
+  width: 120px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neutral-200);
+}
+.matrix-cell {
+  vertical-align: top;
+  padding: 6px;
+  background: var(--neutral-50);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--neutral-200);
+  min-height: 90px;
+  height: 90px;
+  transition: background 0.15s ease;
+}
+.matrix-cell.has-course {
+  background: #ffffff;
+  border-style: solid;
+}
+.matrix-course-badge {
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-size: 11.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.matrix-course-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Timeline Model */
+.timeline-track-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.timeline-day-card {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--neutral-200);
+  padding: 16px 20px;
+  box-shadow: var(--card-shadow);
+}
+.timeline-strip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.timeline-item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  transition: all 0.15s ease;
+}
+.timeline-item-row:hover {
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
 /* Tablet & Mobile Layout (<= 1024px) */
 @media (max-width: 1024px) {
   .sidebar {
@@ -1089,15 +1466,25 @@ body {
     margin-bottom: 14px;
   }
   .jadwal-header-actions {
-    display: flex;
-    gap: 8px;
-    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
   .jadwal-header-actions .btn {
-    flex: 1;
+    width: 100%;
     justify-content: center;
-    font-size: 12px;
-    padding: 8px 10px;
+    font-size: 11.5px;
+    padding: 7px 8px;
+    white-space: nowrap;
+  }
+
+  .jadwal-model-mobile-select {
+    display: block !important;
+    width: 100% !important;
+  }
+  #jadwalModelTabsDesktop {
+    display: none !important;
   }
 
   .jadwal-filter-bar {
@@ -1140,34 +1527,36 @@ body {
 
   .jadwal-filter-inputs {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
   }
   .jadwal-search-field {
     flex: 1;
     min-width: 0;
-    padding: 7px 10px;
-    font-size: 12px;
-    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 10px;
     border: 1px solid var(--neutral-300);
     outline: none;
+    -webkit-appearance: none;
   }
   .jadwal-select-field {
-    width: 125px;
-    padding: 7px 8px;
-    font-size: 12px;
-    border-radius: 8px;
+    width: 130px;
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 10px;
     border: 1px solid var(--neutral-300);
     outline: none;
     background: #fff;
+    -webkit-appearance: none;
   }
 
   /* Weekly view on mobile */
   .jadwal-mobile-days-nav {
     display: flex;
     overflow-x: auto;
-    gap: 6px;
-    padding: 4px 0 10px 0;
+    gap: 8px;
+    padding: 4px 2px 12px 2px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
@@ -1176,34 +1565,153 @@ body {
   }
   .jadwal-day-tab-btn {
     flex-shrink: 0;
-    padding: 7px 14px;
-    font-size: 12px;
+    padding: 8px 16px;
+    font-size: 12.5px;
     font-weight: 700;
     border-radius: 9999px;
     border: 1px solid var(--neutral-300);
     background: #ffffff;
     color: var(--neutral-700);
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.15s ease;
   }
   .jadwal-day-tab-btn.active {
     background: var(--teal-600);
     color: #ffffff;
     border-color: var(--teal-700);
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
   }
 
   /* Bottom Navigation Mobile */
   .bottom-nav {
-    height: 58px;
-    padding-bottom: calc(4px + env(safe-area-inset-bottom));
+    height: 62px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--neutral-200);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    z-index: 45;
   }
   .bottom-nav-item {
-    font-size: 9.5px;
-    padding: 4px 2px;
-    gap: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 5px 2px;
+    gap: 3px;
+    color: var(--neutral-500);
+    transition: color 0.15s ease;
+  }
+  .bottom-nav-item.active {
+    color: var(--teal-700);
   }
   .bottom-nav-item svg {
-    width: 19px;
-    height: 19px;
+    width: 20px;
+    height: 20px;
+    transition: transform 0.15s ease;
+  }
+  .bottom-nav-item.active svg {
+    transform: translateY(-1px);
+    stroke: var(--teal-600);
+  }
+
+  /* Grid layouts collapse properly on phone */
+  .jadwal-grid-wrap {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .jadwal-permatkul-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Modal on phone */
+  .modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+  }
+  .modal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 90vh !important;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25) !important;
+  }
+  .modal-body {
+    max-height: 72vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Forms & Input fields touch friendly */
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="email"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+  }
+
+  /* Prevent table cutoffs */
+  .matrix-table-wrap,
+  .print-sheet-card {
+    border-radius: var(--radius-lg) !important;
+    padding: 12px !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* KTM Card responsive adjustment */
+  .ktm-card-wrap {
+    max-width: 100% !important;
+  }
+}
+
+/* Sidebar Backdrop & Drawer on Mobile */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 48;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sidebar-backdrop.open {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-close-btn {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--neutral-200);
+  background: #ffffff;
+  color: var(--neutral-700);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+@media (max-width: 1024px) {
+  .sidebar-close-btn {
+    display: flex;
+  }
+  .sidebar {
+    z-index: 50 !important;
+    width: 290px !important;
+    max-width: 82vw !important;
   }
 }
 
@@ -1213,15 +1721,30 @@ body {
     display: none !important;
   }
   .topbar-right {
-    gap: 6px;
+    gap: 4px;
   }
   .topbar-btn {
     width: 32px;
     height: 32px;
+    padding: 0;
   }
   .topbar-btn svg {
     width: 15px;
     height: 15px;
+  }
+  .jadwal-header-actions {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+  .jadwal-header-actions .btn {
+    font-size: 10.5px !important;
+    padding: 6px 4px !important;
+  }
+  .jadwal-filter-inputs {
+    flex-direction: column !important;
+  }
+  .jadwal-select-field {
+    width: 100% !important;
   }
 }
 
@@ -1229,23 +1752,26 @@ body {
 .offline-badge {
   position: fixed;
   bottom: 74px; /* above bottom navigation on mobile */
-  left: 14px;
+  left: 12px;
+  right: 12px; /* Stretch or center cleanly on phone */
   z-index: 100;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  background: rgba(15, 23, 42, 0.94);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #fef08a;
   border: 1px solid rgba(250, 204, 21, 0.5);
-  padding: 7px 14px;
+  padding: 8px 14px;
   border-radius: 9999px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
   pointer-events: none;
   animation: fadeIn 0.3s ease;
+  text-align: center;
 }
 .offline-dot {
   width: 8px;
@@ -1259,7 +1785,10 @@ body {
 @media (min-width: 1025px) {
   .offline-badge {
     bottom: 24px;
-    left: 284px; /* to the right of desktop sidebar */
+    left: 284px;
+    right: auto;
+    font-size: 12px;
+    padding: 7px 16px;
   }
 }
 

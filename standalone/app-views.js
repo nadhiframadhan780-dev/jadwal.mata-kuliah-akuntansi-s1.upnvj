@@ -362,10 +362,53 @@
       });
     },
 
-    renderJadwal(activeTab = 'mingguan') {
+    // Helper: Ambil jam mulai dan selesai matkul
+    getMatkulStartTime(m) {
+      if (m.sesi && m.sesi.length > 0 && m.sesi[0].mulai) return m.sesi[0].mulai;
+      return '07:10';
+    },
+
+    getMatkulEndTime(m) {
+      if (m.sesi && m.sesi.length > 0 && m.sesi[0].selesai) return m.sesi[0].selesai;
+      return Number(m.sks) === 2 ? '08:50' : '09:40';
+    },
+
+    // Helper: Urutkan array matkul secara ketat sesuai jam mulai (mulai paling pagi ke sore)
+    sortMatkulByTime(matkulArray) {
+      return [...matkulArray].sort((a, b) => {
+        const timeA = (a.sesi && a.sesi[0] && a.sesi[0].mulai) || '07:10';
+        const timeB = (b.sesi && b.sesi[0] && b.sesi[0].mulai) || '07:10';
+        if (timeA !== timeB) return timeA.localeCompare(timeB);
+        return (a.nama || '').localeCompare(b.nama || '');
+      });
+    },
+
+    renderJadwal(activeTab = null) {
       const container = document.getElementById('jadwalTabContent');
       if (!container) return;
       container.innerHTML = '';
+
+      // Persist active model in store
+      if (activeTab) {
+        appStore.state.jadwalModel = activeTab;
+      }
+      const currentModel = appStore.state.jadwalModel || 'mingguan';
+
+      // Sync active state on tabs and mobile selector
+      document.querySelectorAll('.jadwal-tab-btn').forEach(btn => {
+        const tab = btn.getAttribute('data-tab');
+        const isActive = tab === currentModel;
+        btn.classList.toggle('active', isActive);
+        btn.style.background = isActive ? '#ffffff' : 'transparent';
+        btn.style.color = isActive ? 'var(--teal-900)' : 'var(--neutral-600)';
+        btn.style.boxShadow = isActive ? '0 1px 4px rgba(0,0,0,0.1)' : 'none';
+        btn.style.fontWeight = isActive ? '800' : '700';
+      });
+
+      const mobileSel = document.getElementById('jadwalMobileModelSelect');
+      if (mobileSel && mobileSel.value !== currentModel) {
+        mobileSel.value = currentModel;
+      }
 
       const allMatkul = appStore.getActiveMatkul();
       const searchQuery = (document.getElementById('jadwalSearchInput')?.value || '').toLowerCase().trim();
@@ -378,9 +421,14 @@
         if (clashes.length > 0) {
           clashEl.style.display = 'block';
           clashEl.innerHTML = `
-            <div style="background: var(--danger-50); border: 1px solid var(--danger-100); color: var(--danger-600); padding: 12px 16px; border-radius: var(--radius-md); font-size: 12.5px; display: flex; align-items: center; gap: 8px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <span><strong>Perhatian: Terdeteksi ${clashes.length} bentrok jadwal!</strong> ${clashes[0].desc}</span>
+            <div style="background: var(--danger-50); border: 1px solid var(--danger-200); color: var(--danger-700); padding: 12px 18px; border-radius: var(--radius-xl); font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span><strong>Terdeteksi ${clashes.length} Potensi Bentrok Jadwal!</strong> ${clashes[0].desc}</span>
+              </div>
+              <button class="btn btn-sm btn-primary" onclick="window.appViews.alignAllSchedulesSequentially()" style="font-weight: 800; padding: 6px 14px; font-size: 12px;">
+                ✨ Selesaikan Otomatis (Urutkan Jam)
+              </button>
             </div>
           `;
         } else {
@@ -388,17 +436,24 @@
         }
       }
 
-      if (activeTab === 'mingguan') {
+      if (currentModel === 'mingguan') {
         this.renderJadwalMingguan(container, allMatkul, searchQuery, ruangFilter);
-      } else if (activeTab === 'perhari') {
-        this.renderJadwalPerHari(container, allMatkul, searchQuery, ruangFilter);
-      } else if (activeTab === 'permatkul') {
+      } else if (currentModel === 'matriks') {
+        this.renderJadwalMatriks(container, allMatkul, searchQuery, ruangFilter);
+      } else if (currentModel === 'timeline' || currentModel === 'perhari') {
+        this.renderJadwalTimeline(container, allMatkul, searchQuery, ruangFilter);
+      } else if (currentModel === 'kalender') {
+        this.renderJadwalKalender(container, allMatkul, searchQuery, ruangFilter);
+      } else if (currentModel === 'permatkul') {
         this.renderJadwalPerMatkul(container, allMatkul, searchQuery, ruangFilter);
-      } else if (activeTab === 'semuapertemuan') {
+      } else if (currentModel === 'semuapertemuan') {
         this.renderJadwalSemuaPertemuan(container, allMatkul, searchQuery, ruangFilter);
+      } else {
+        this.renderJadwalMingguan(container, allMatkul, searchQuery, ruangFilter);
       }
     },
 
+    // MODEL 1: KOLOM MINGGUAN (KANBAN PER HARI DENGAN URUTAN JAM KETAT & DRAG-AND-DROP)
     renderJadwalMingguan(container, allMatkul, search, ruang) {
       const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
@@ -416,64 +471,111 @@
 
       const wrap = document.createElement('div');
       wrap.className = 'jadwal-grid-wrap';
-      wrap.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;';
+      wrap.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px;';
 
       days.forEach(day => {
         const dayCard = document.createElement('div');
         dayCard.className = 'card jadwal-day-card';
         dayCard.setAttribute('data-day', day);
-        dayCard.style.cssText = 'padding: 16px; min-height: 140px; display: flex; flex-direction: column; gap: 10px; background: #ffffff;';
+        dayCard.style.cssText = 'padding: 16px; min-height: 160px; display: flex; flex-direction: column; gap: 10px; background: #ffffff; position: relative;';
+
+        // Filter and STRICTLY SORT by start time
+        let dayMatkuls = allMatkul.filter(m => m.hariReguler === day);
+        if (search) {
+          dayMatkuls = dayMatkuls.filter(m => m.nama.toLowerCase().includes(search) || m.kode.toLowerCase().includes(search) || (m.catatan||'').toLowerCase().includes(search));
+        }
+        if (ruang !== 'all') {
+          dayMatkuls = dayMatkuls.filter(m => m.sesi && m.sesi.some(s => s.ruang === ruang));
+        }
+        dayMatkuls = this.sortMatkulByTime(dayMatkuls);
 
         dayCard.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--neutral-100); padding-bottom: 8px;">
-            <h4 style="font-size: 15px; font-weight: 800; color: var(--teal-900);">${day}</h4>
-            <span style="font-size: 11px; background: var(--teal-50); color: var(--teal-700); padding: 1px 8px; border-radius: 9999px; font-weight: 700;" class="day-count-badge">0 Matkul</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h4 style="font-size: 15px; font-weight: 800; color: var(--teal-900); margin: 0;">${day}</h4>
+              <span style="font-size: 11px; background: var(--teal-50); color: var(--teal-700); padding: 1px 8px; border-radius: 9999px; font-weight: 700;">${dayMatkuls.length} Matkul</span>
+            </div>
+            ${dayMatkuls.length > 0 ? `
+              <button class="btn-reorder-day" onclick="window.appViews.alignDayScheduleSequentially('${day}')" title="Urutkan jam otomatis berurutan agar rapi">
+                ✨ Urutkan Jam
+              </button>
+            ` : ''}
           </div>
-          <div class="day-sessions-container" data-day="${day}" style="display: flex; flex-direction: column; gap: 8px; flex: 1;"></div>
+          <div class="day-sessions-container" data-day="${day}" style="display: flex; flex-direction: column; gap: 10px; flex: 1;"></div>
         `;
 
         const sessionsContainer = dayCard.querySelector('.day-sessions-container');
-        let count = 0;
 
-        allMatkul.forEach(m => {
-          if (m.hariReguler === day) {
-            // Apply search & ruang filter
-            if (search && !m.nama.toLowerCase().includes(search) && !m.kode.toLowerCase().includes(search) && !(m.catatan||'').toLowerCase().includes(search)) return;
-            if (ruang !== 'all') {
-              const hasRuang = m.sesi.some(s => s.ruang === ruang);
-              if (!hasRuang) return;
-            }
-
-            count++;
+        if (dayMatkuls.length === 0) {
+          sessionsContainer.innerHTML = `
+            <div style="font-size: 12px; color: var(--neutral-400); text-align: center; padding: 24px 0; font-style: italic; background: var(--neutral-50); border-radius: var(--radius-md); border: 1px dashed var(--neutral-200);">
+              Tidak ada perkuliahan terjadwal di hari ${day}
+            </div>
+          `;
+        } else {
+          dayMatkuls.forEach((m, idx) => {
+            const firstSesi = (m.sesi && m.sesi[0]) || {};
+            const mulai = firstSesi.mulai || '07:10';
+            const selesai = firstSesi.selesai || '09:40';
             const sItem = document.createElement('div');
             sItem.draggable = true;
-            sItem.className = 'jadwal-mini-item';
+            sItem.className = 'jadwal-mini-item session-card-item';
+            sItem.setAttribute('data-matkul-id', m.id);
             sItem.style.cssText = `
-              padding: 10px 12px;
-              border-radius: var(--radius-md);
-              background: var(--neutral-50);
+              padding: 12px 14px;
+              border-radius: var(--radius-lg);
+              background: #ffffff;
               border: 1px solid var(--neutral-200);
-              border-left: 4px solid ${m.warna || 'var(--teal-600)'};
-              cursor: pointer;
+              border-left: 5px solid ${m.warna || 'var(--teal-600)'};
+              box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+              cursor: grab;
               transition: all 0.15s ease;
             `;
 
-            const firstSesi = m.sesi[0] || {};
             sItem.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                <span style="font-size: 11px; font-weight: 800; color: var(--teal-800);">${firstSesi.mulai || '07:10'} – ${firstSesi.selesai || '09:40'} WIB</span>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 10px; font-weight: 800; background: var(--teal-900); color: #ffffff; padding: 1px 6px; border-radius: 4px;">Sesi ${idx + 1}</span>
+                  <span style="font-size: 11.5px; font-weight: 800; color: var(--teal-800);">${mulai} – ${selesai} WIB</span>
+                </div>
                 <span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 6px; border-radius: 4px;">${m.kode}</span>
               </div>
-              <div style="font-size: 13.5px; font-weight: 800; color: var(--neutral-900); margin: 2px 0; line-height: 1.25;">${escapeHtml(m.nama)}</div>
-              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--neutral-600); margin-top: 4px;">
+              <div style="font-size: 14px; font-weight: 800; color: var(--neutral-900); margin: 3px 0 4px; line-height: 1.25;">${escapeHtml(m.nama)}</div>
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--neutral-600); margin-bottom: 8px;">
                 <span>Kelas ${m.kelas} &bull; ${m.sks} SKS</span>
                 <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(firstSesi.ruang || 'Kelas Kecil')}</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--neutral-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 8px;">
+                ${escapeHtml(firstSesi.dosen || m.catatan || '-')}
+              </div>
+              <!-- Action Controls: Up/Down/Geser/Detail -->
+              <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--neutral-100); padding-top: 6px;" onclick="event.stopPropagation();">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.appViews.moveCourseOrderInDay('${m.id}', 'up')" title="Geser urutan jam lebih awal" style="padding: 2px 6px; font-size: 10px;" ${idx === 0 ? 'disabled' : ''}>
+                    ⬆️
+                  </button>
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.appViews.moveCourseOrderInDay('${m.id}', 'down')" title="Geser urutan jam lebih akhir" style="padding: 2px 6px; font-size: 10px;" ${idx === dayMatkuls.length - 1 ? 'disabled' : ''}>
+                    ⬇️
+                  </button>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.appViews.openGeserJadwalModal('${m.id}')" title="Geser jadwal ke hari lain atau atur jam" style="padding: 3px 8px; font-size: 10.5px; font-weight: 700; color: var(--teal-700);">
+                    🔁 Geser
+                  </button>
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="window.appViews.openSessionModal('${m.id}', 0)" title="Ubah detail sesi" style="padding: 3px 8px; font-size: 10.5px; font-weight: 700;">
+                    Rincian
+                  </button>
+                </div>
               </div>
             `;
 
             // Drag and drop events
             sItem.ondragstart = (e) => {
+              sItem.style.opacity = '0.5';
               e.dataTransfer.setData('text/plain', m.id);
+            };
+            sItem.ondragend = () => {
+              sItem.style.opacity = '1';
             };
 
             sItem.onclick = () => {
@@ -481,25 +583,30 @@
             };
 
             sessionsContainer.appendChild(sItem);
-          }
-        });
-
-        if (count === 0) {
-          sessionsContainer.innerHTML = `<div style="font-size: 12px; color: var(--neutral-400); text-align: center; padding: 14px 0; font-style: italic;">Tidak ada perkuliahan</div>`;
+          });
         }
 
         // Drop zone handlers
-        dayCard.ondragover = (e) => e.preventDefault();
+        dayCard.ondragover = (e) => {
+          e.preventDefault();
+          dayCard.style.outline = '2px dashed var(--teal-600)';
+          dayCard.style.background = 'var(--teal-50)';
+        };
+        dayCard.ondragleave = () => {
+          dayCard.style.outline = 'none';
+          dayCard.style.background = '#ffffff';
+        };
         dayCard.ondrop = (e) => {
           e.preventDefault();
+          dayCard.style.outline = 'none';
+          dayCard.style.background = '#ffffff';
           const matkulId = e.dataTransfer.getData('text/plain');
           const targetMatkul = allMatkul.find(item => item.id === matkulId);
-          if (targetMatkul && targetMatkul.hariReguler !== day) {
+          if (targetMatkul) {
             window.appViews.shiftMatkulDay(targetMatkul, day);
           }
         };
 
-        dayCard.querySelector('.day-count-badge').textContent = `${count} Matkul`;
         wrap.appendChild(dayCard);
       });
 
@@ -522,49 +629,163 @@
       container.appendChild(wrap);
     },
 
-    renderJadwalPerHari(container, allMatkul, search, ruang) {
+    // MODEL 2: MATRIKS JAM (TIMETABLE GRID 07:00 - 18:00 HARI SENIN S/D SABTU)
+    renderJadwalMatriks(container, allMatkul, search, ruang) {
+      const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const timeSlots = [
+        { label: '07:10 – 08:50', title: 'Sesi Pagi 1A (2 SKS)', start: '07:10', end: '08:50' },
+        { label: '08:50 – 09:40', title: 'Sesi Pagi 1B (Lanjutan 3 SKS)', start: '08:50', end: '09:40' },
+        { label: '09:50 – 11:20', title: 'Sesi Pagi 2A', start: '09:50', end: '11:20' },
+        { label: '11:20 – 12:20', title: 'Sesi Pagi 2B', start: '11:20', end: '12:20' },
+        { label: '12:20 – 13:00', title: '⏸️ Istirahat & Sholat Dhuhur', isBreak: true },
+        { label: '13:00 – 14:40', title: 'Sesi Siang 3A (2 SKS)', start: '13:00', end: '14:40' },
+        { label: '14:40 – 15:30', title: 'Sesi Siang 3B (Lanjutan 3 SKS)', start: '14:40', end: '15:30' },
+        { label: '15:40 – 17:20', title: 'Sesi Sore 4A', start: '15:40', end: '17:20' },
+        { label: '17:20 – 18:10', title: 'Sesi Sore 4B', start: '17:20', end: '18:10' }
+      ];
+
+      const wrap = document.createElement('div');
+      wrap.className = 'matrix-table-wrap card';
+      wrap.style.cssText = 'padding: 16px 20px; overflow-x: auto; background: #ffffff;';
+
+      wrap.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--teal-900); margin: 0;">Matriks Jadwal Kuliah (Format SIAKAD)</h3>
+            <p style="font-size: 12px; color: var(--neutral-500); margin: 2px 0 0;">Persebaran jam kuliah dari pagi hingga sore hari secara visual</p>
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="window.appViews.alignAllSchedulesSequentially()" style="font-weight: 800;">
+            ✨ Urutkan Semua Jam
+          </button>
+        </div>
+
+        <table class="matrix-table" style="width: 100%; border-collapse: separate; border-spacing: 6px; min-width: 820px;">
+          <thead>
+            <tr>
+              <th class="matrix-time-th" style="background: var(--neutral-100); padding: 10px; font-size: 12px; font-weight: 800; border-radius: 8px; width: 130px; text-align: center;">Jam / Waktu</th>
+              ${days.map(d => `<th class="matrix-th" style="background: var(--teal-50); color: var(--teal-900); padding: 10px; font-size: 13px; font-weight: 800; border-radius: 8px; text-align: center;">${d}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${timeSlots.map(slot => {
+              if (slot.isBreak) {
+                return `
+                  <tr>
+                    <td style="background: var(--yellow-50); color: var(--yellow-800); font-weight: 800; font-size: 11px; padding: 8px; text-align: center; border-radius: 6px;" colspan="${days.length + 1}">
+                      ${slot.title} (${slot.label})
+                    </td>
+                  </tr>
+                `;
+              }
+
+              return `
+                <tr>
+                  <td style="background: var(--neutral-50); border: 1px solid var(--neutral-200); padding: 8px; font-size: 11px; font-weight: 800; text-align: center; border-radius: 6px; color: var(--teal-900);">
+                    <div>${slot.label}</div>
+                    <div style="font-size: 9.5px; font-weight: 600; color: var(--neutral-500);">${slot.title}</div>
+                  </td>
+                  ${days.map(day => {
+                    // Find course active on this day and matching this time slot
+                    const dayMatkuls = allMatkul.filter(m => m.hariReguler === day);
+                    const matching = dayMatkuls.filter(m => {
+                      const firstSesi = (m.sesi && m.sesi[0]) || {};
+                      const mStart = firstSesi.mulai || '07:10';
+                      const mEnd = firstSesi.selesai || '09:40';
+                      // Overlap logic: startA < endB && endA > startB
+                      return mStart < slot.end && mEnd > slot.start;
+                    });
+
+                    if (matching.length === 0) {
+                      return `<td class="matrix-cell" style="background: var(--neutral-50); border: 1px dashed var(--neutral-200); border-radius: 6px; min-height: 48px; height: 48px;"></td>`;
+                    }
+
+                    return `
+                      <td class="matrix-cell has-course" style="padding: 4px; border-radius: 6px; background: #ffffff; border: 1px solid var(--neutral-200); vertical-align: top;">
+                        ${matching.map(m => `
+                          <div class="matrix-course-badge" onclick="window.appViews.openSessionModal('${m.id}', 0)" style="background: ${m.warna || 'var(--teal-600)'}; color: #ffffff; padding: 6px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; margin-bottom: 2px;">
+                            <div style="font-weight: 800; line-height: 1.2;">${escapeHtml(m.nama)}</div>
+                            <div style="font-size: 9.5px; opacity: 0.9; margin-top: 2px; display: flex; justify-content: space-between;">
+                              <span>${m.sks} SKS &bull; Kls ${m.kelas}</span>
+                              <span>📍 ${escapeHtml((m.sesi && m.sesi[0] && m.sesi[0].ruang) || 'Kelas Kecil')}</span>
+                            </div>
+                          </div>
+                        `).join('')}
+                      </td>
+                    `;
+                  }).join('')}
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.appendChild(wrap);
+    },
+
+    // MODEL 3: LINIMASA JAM (URUTAN JAM LINEAR PER HARI)
+    renderJadwalTimeline(container, allMatkul, search, ruang) {
       const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
       const wrap = document.createElement('div');
+      wrap.className = 'timeline-track-wrap';
       wrap.style.cssText = 'display: flex; flex-direction: column; gap: 16px;';
 
       days.forEach(day => {
-        const matkulThisDay = allMatkul.filter(m => m.hariReguler === day);
-        if (matkulThisDay.length === 0) return;
+        let dayMatkuls = allMatkul.filter(m => m.hariReguler === day);
+        if (search) {
+          dayMatkuls = dayMatkuls.filter(m => m.nama.toLowerCase().includes(search) || m.kode.toLowerCase().includes(search));
+        }
+        if (ruang !== 'all') {
+          dayMatkuls = dayMatkuls.filter(m => m.sesi && m.sesi.some(s => s.ruang === ruang));
+        }
+        if (dayMatkuls.length === 0) return;
+
+        // Sort strictly by start time
+        dayMatkuls = this.sortMatkulByTime(dayMatkuls);
 
         const sec = document.createElement('div');
-        sec.className = 'card';
+        sec.className = 'card timeline-day-card';
         sec.style.padding = '18px 20px';
 
         sec.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--neutral-200); padding-bottom: 8px;">
-            <h3 style="font-size: 16px; font-weight: 800; color: var(--teal-900);">${day}</h3>
-            <span style="font-size: 12px; color: var(--neutral-500);">${matkulThisDay.length} Mata Kuliah Terjadwal</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 2px solid var(--neutral-100); padding-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3 style="font-size: 16px; font-weight: 800; color: var(--teal-900); margin: 0;">${day}</h3>
+              <span style="font-size: 11px; background: var(--teal-50); color: var(--teal-700); padding: 1px 8px; border-radius: 9999px; font-weight: 700;">${dayMatkuls.length} Mata Kuliah Terjadwal</span>
+            </div>
+            <button class="btn-reorder-day" onclick="window.appViews.alignDayScheduleSequentially('${day}')" title="Urutkan jam otomatis berurutan">
+              ✨ Urutkan Jam
+            </button>
           </div>
-          <div class="day-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+          <div class="timeline-strip" style="display: flex; flex-direction: column; gap: 10px;"></div>
         `;
 
-        const list = sec.querySelector('.day-list');
-        matkulThisDay.forEach(m => {
+        const list = sec.querySelector('.timeline-strip');
+        dayMatkuls.forEach((m, idx) => {
+          const s1 = (m.sesi && m.sesi[0]) || {};
           const row = document.createElement('div');
+          row.className = 'timeline-item-row';
           row.style.cssText = `
-            padding: 12px 14px;
-            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            border-radius: var(--radius-lg);
             background: var(--neutral-50);
             border: 1px solid var(--neutral-200);
-            border-left: 4px solid ${m.warna};
+            border-left: 5px solid ${m.warna || 'var(--teal-600)'};
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            flex-wrap: wrap;
           `;
-          const s1 = m.sesi[0] || {};
+
           row.innerHTML = `
-            <div style="flex: 1; min-width: 0;">
-              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                <span style="font-size: 11.5px; font-weight: 800; color: var(--teal-800);">${s1.mulai || ''} – ${s1.selesai || ''} WIB</span>
-                <span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 5px; border-radius: 4px;">${m.kode}</span>
+            <div style="flex: 1; min-width: 240px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 10px; font-weight: 800; background: var(--teal-900); color: #ffffff; padding: 1px 7px; border-radius: 4px;">Sesi ${idx + 1}</span>
+                <span style="font-size: 12px; font-weight: 800; color: var(--teal-800);">${s1.mulai || '07:10'} – ${s1.selesai || '09:40'} WIB</span>
+                <span style="font-size: 10px; font-weight: 800; background: var(--teal-100); color: var(--teal-800); padding: 1px 6px; border-radius: 4px;">${m.kode}</span>
               </div>
-              <div style="font-size: 14px; font-weight: 800; color: var(--neutral-900); line-height: 1.25; margin-bottom: 4px;">${escapeHtml(m.nama)}</div>
+              <div style="font-size: 14.5px; font-weight: 800; color: var(--neutral-900); line-height: 1.25; margin-bottom: 4px;">${escapeHtml(m.nama)}</div>
               <div style="font-size: 11.5px; color: var(--neutral-600); display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
                 <span>Dosen: <strong>${escapeHtml(s1.dosen || m.catatan || '-')}</strong></span>
                 <span>&bull;</span>
@@ -574,7 +795,12 @@
                 <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(s1.ruang || 'Kelas Kecil')}</span>
               </div>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)" style="flex-shrink: 0; padding: 6px 12px;">Rincian</button>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button class="btn btn-secondary btn-sm" onclick="window.appViews.moveCourseOrderInDay('${m.id}', 'up')" title="Geser lebih awal" ${idx === 0 ? 'disabled' : ''}>⬆️</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.appViews.moveCourseOrderInDay('${m.id}', 'down')" title="Geser lebih akhir" ${idx === dayMatkuls.length - 1 ? 'disabled' : ''}>⬇️</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.appViews.openGeserJadwalModal('${m.id}')" style="font-weight: 700; color: var(--teal-700);">🔁 Geser</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Rincian</button>
+            </div>
           `;
           list.appendChild(row);
         });
@@ -585,6 +811,111 @@
       container.appendChild(wrap);
     },
 
+    // MODEL 4: KALENDER BULANAN SEMESTER
+    renderJadwalKalender(container, allMatkul, search, ruang) {
+      const wrap = document.createElement('div');
+      wrap.className = 'card';
+      wrap.style.padding = '18px 20px';
+
+      const months = [
+        { label: 'Agustus 2026', y: 2026, m: 7 },
+        { label: 'September 2026', y: 2026, m: 8 },
+        { label: 'Oktober 2026', y: 2026, m: 9 },
+        { label: 'November 2026', y: 2026, m: 10 },
+        { label: 'Desember 2026', y: 2026, m: 11 }
+      ];
+
+      if (!window.activeCalendarMonthIdx) window.activeCalendarMonthIdx = 0;
+      const currentMonth = months[window.activeCalendarMonthIdx] || months[0];
+
+      wrap.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--teal-900); margin: 0;">Kalender Akademik Semester 1</h3>
+            <p style="font-size: 12px; color: var(--neutral-500); margin: 2px 0 0;">Klik tanggal untuk melihat perkuliahan dan status kehadiran</p>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn btn-sm btn-secondary" id="calPrevMonthBtn" ${window.activeCalendarMonthIdx === 0 ? 'disabled' : ''}>&larr; Bulan Sebelumnya</button>
+            <span style="font-size: 13px; font-weight: 800; color: var(--teal-900); min-width: 120px; text-align: center;">${currentMonth.label}</span>
+            <button class="btn btn-sm btn-secondary" id="calNextMonthBtn" ${window.activeCalendarMonthIdx === months.length - 1 ? 'disabled' : ''}>Bulan Berikutnya &rarr;</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-weight: 800; font-size: 11.5px; color: var(--teal-900); margin-bottom: 6px;">
+          <div style="color: var(--danger-600);">Minggu</div>
+          <div>Senin</div>
+          <div>Selasa</div>
+          <div>Rabu</div>
+          <div>Kamis</div>
+          <div>Jumat</div>
+          <div>Sabtu</div>
+        </div>
+        <div id="calendarGridDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;"></div>
+      `;
+
+      const gridEl = wrap.querySelector('#calendarGridDays');
+      const firstDay = new Date(currentMonth.y, currentMonth.m, 1).getDay();
+      const totalDays = new Date(currentMonth.y, currentMonth.m + 1, 0).getDate();
+
+      // Empty lead days
+      for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.style.cssText = 'height: 85px; background: var(--neutral-50); border-radius: 6px; opacity: 0.4;';
+        gridEl.appendChild(emptyCell);
+      }
+
+      // Populate days
+      for (let d = 1; d <= totalDays; d++) {
+        const dateStr = `${currentMonth.y}-${String(currentMonth.m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayCell = document.createElement('div');
+        dayCell.style.cssText = 'height: 85px; background: #ffffff; border: 1px solid var(--neutral-200); border-radius: 6px; padding: 4px; display: flex; flex-direction: column; overflow: hidden;';
+
+        // Check sessions on this date
+        const matchingSessions = [];
+        allMatkul.forEach(m => {
+          if (m.sesi) {
+            m.sesi.forEach(s => {
+              if (s.tanggal === dateStr) {
+                matchingSessions.push({ matkul: m, sesi: s });
+              }
+            });
+          }
+        });
+
+        dayCell.innerHTML = `
+          <div style="font-size: 11px; font-weight: 800; color: ${matchingSessions.length > 0 ? 'var(--teal-800)' : 'var(--neutral-600)'}; text-align: right; margin-bottom: 2px;">
+            ${d}
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px; overflow-y: auto; flex: 1;">
+            ${matchingSessions.map(ms => `
+              <div onclick="window.appViews.openSessionModal('${ms.matkul.id}', 0)" title="${escapeHtml(ms.matkul.nama)} (${ms.sesi.mulai}-${ms.sesi.selesai})" style="background: ${ms.matkul.warna || 'var(--teal-600)'}; color: #ffffff; font-size: 9px; font-weight: 700; padding: 2px 4px; border-radius: 3px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${escapeHtml(ms.matkul.nama)}
+              </div>
+            `).join('')}
+          </div>
+        `;
+
+        gridEl.appendChild(dayCell);
+      }
+
+      // Prev / next buttons
+      wrap.querySelector('#calPrevMonthBtn').onclick = () => {
+        if (window.activeCalendarMonthIdx > 0) {
+          window.activeCalendarMonthIdx--;
+          appRenderer.renderJadwal('kalender');
+        }
+      };
+      wrap.querySelector('#calNextMonthBtn').onclick = () => {
+        if (window.activeCalendarMonthIdx < months.length - 1) {
+          window.activeCalendarMonthIdx++;
+          appRenderer.renderJadwal('kalender');
+        }
+      };
+
+      container.appendChild(wrap);
+    },
+
+    // MODEL 5: KARTU PER MATKUL (LENGKAP DENGAN SKS, PROGRES KEHADIRAN & DETAIL SESI)
     renderJadwalPerMatkul(container, allMatkul, search, ruang) {
       const wrap = document.createElement('div');
       wrap.className = 'jadwal-permatkul-grid';
@@ -595,20 +926,24 @@
         card.className = 'card';
         card.style.cssText = `border-top: 5px solid ${m.warna}; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;`;
 
-        const hadirCount = m.sesi.filter(s => s.status === 'hadir').length;
-        const totalSesi = m.sesi.length;
+        const hadirCount = m.sesi ? m.sesi.filter(s => s.status === 'hadir').length : 0;
+        const totalSesi = m.sesi ? m.sesi.length : 0;
         const pct = totalSesi > 0 ? Math.round((hadirCount / totalSesi) * 100) : 0;
+        const firstS = (m.sesi && m.sesi[0]) || {};
 
         card.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
               <span style="font-size: 11px; font-weight: 700; color: var(--teal-700);">${m.kode} &bull; Kelas ${m.kelas} &bull; ${m.sks} SKS</span>
-              <h4 style="font-size: 15px; font-weight: 800; color: var(--neutral-900);">${escapeHtml(m.nama)}</h4>
+              <h4 style="font-size: 15px; font-weight: 800; color: var(--neutral-900); margin: 2px 0;">${escapeHtml(m.nama)}</h4>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Ubah</button>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn btn-secondary btn-sm" onclick="window.appViews.openGeserJadwalModal('${m.id}')" title="Geser jadwal matkul ini" style="font-weight: 700; color: var(--teal-700);">🔁 Geser</button>
+              <button class="btn btn-secondary btn-sm" onclick="window.appViews.openSessionModal('${m.id}', 0)">Ubah</button>
+            </div>
           </div>
           <div style="font-size: 12px; color: var(--neutral-600);">
-            Hari Reguler: <strong>${m.hariReguler}</strong> &bull; Total ${totalSesi} Pertemuan
+            Hari: <strong>${m.hariReguler}</strong> &bull; Jam: <strong>${firstS.mulai || '07:10'} – ${firstS.selesai || '09:40'} WIB</strong> &bull; ${totalSesi} Pertemuan
           </div>
           <div style="font-size: 11.5px; color: var(--neutral-500); line-height: 1.3;">${escapeHtml(m.catatan || '')}</div>
           
@@ -625,9 +960,9 @@
           <details style="margin-top: 8px; font-size: 12px; border-top: 1px solid var(--neutral-100); padding-top: 6px;">
             <summary style="cursor: pointer; color: var(--teal-700); font-weight: 700;">Lihat Semua ${totalSesi} Pertemuan</summary>
             <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto;">
-              ${m.sesi.map(s => `
+              ${(m.sesi || []).map(s => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-radius: 4px; background: var(--neutral-50); font-size: 11px;">
-                  <span>Ke-${s.ke} (${formatShortDate(s.tanggal)})</span>
+                  <span>Ke-${s.ke} (${formatShortDate(s.tanggal)} &bull; ${s.mulai}-${s.selesai})</span>
                   <span style="font-weight: 600; color: ${s.status === 'hadir' ? 'var(--teal-700)' : 'var(--neutral-500)'};">${s.status ? s.status.toUpperCase() : 'BELUM'}</span>
                 </div>
               `).join('')}
@@ -639,6 +974,12 @@
       });
 
       container.appendChild(wrap);
+    },
+
+    // MODEL 6: TABEL SEMUA PERTEMUAN
+    renderJadwalPerHari(container, allMatkul, search, ruang) {
+      // Alias to Timeline model
+      this.renderJadwalTimeline(container, allMatkul, search, ruang);
     },
 
     renderJadwalSemuaPertemuan(container, allMatkul, search, ruang) {
@@ -971,11 +1312,273 @@
       showToast('success', 'Jadwal Disimpan', `Perubahan jadwal untuk ${matkul.nama} berhasil disimpan.`);
     },
 
-    shiftMatkulDay(matkul, newDayName) {
-      matkul.hariReguler = newDayName;
+    // Menghitung slot waktu berurutan standar UPNVJ untuk mata kuliah dalam satu hari
+    calculateSequentialSlots(matkulsInDay) {
+      const result = [];
+      matkulsInDay.forEach((m, idx) => {
+        const sks = Number(m.sks) || 3;
+        let mulai = '07:10';
+        let selesai = sks === 2 ? '08:50' : '09:40';
+
+        if (idx === 0) {
+          mulai = '07:10';
+          selesai = sks === 2 ? '08:50' : '09:40';
+        } else if (idx === 1) {
+          const prevEnd = result[0].selesai;
+          if (prevEnd === '08:50') {
+            mulai = '08:50';
+            selesai = sks === 2 ? '10:30' : '11:20';
+          } else {
+            mulai = '09:50';
+            selesai = sks === 2 ? '11:30' : '12:20';
+          }
+        } else if (idx === 2) {
+          mulai = '13:00';
+          selesai = sks === 2 ? '14:40' : '15:30';
+        } else {
+          mulai = '15:40';
+          selesai = sks === 2 ? '17:20' : '18:10';
+        }
+
+        result.push({ matkul: m, mulai, selesai });
+      });
+      return result;
+    },
+
+    // Geser tanggal seluruh sesi ke hari baru dalam minggu akademik yang sama
+    shiftSessionDates(sesiArray, targetDayName) {
+      const DAYS_ORDER = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const targetDayIdx = DAYS_ORDER.indexOf(targetDayName);
+      if (targetDayIdx === -1 || !sesiArray) return;
+
+      sesiArray.forEach(s => {
+        if (!s.tanggal) return;
+        const d = new Date(s.tanggal + 'T00:00:00');
+        if (isNaN(d.getTime())) return;
+        const currentDayIdx = d.getDay();
+        const diff = targetDayIdx - currentDayIdx;
+        d.setDate(d.getDate() + diff);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        s.tanggal = `${y}-${m}-${day}`;
+      });
+    },
+
+    // Otomatis urutkan jadwal suatu hari agar rapi dan berurutan sesuai jam
+    alignDayScheduleSequentially(dayName, silent = false) {
+      const allMatkul = appStore.getActiveMatkul();
+      let dayMatkuls = allMatkul.filter(m => m.hariReguler === dayName);
+      if (dayMatkuls.length === 0) return;
+
+      dayMatkuls = appRenderer.sortMatkulByTime(dayMatkuls);
+      const plannedSlots = this.calculateSequentialSlots(dayMatkuls);
+
+      plannedSlots.forEach(plan => {
+        const m = plan.matkul;
+        if (m.sesi) {
+          m.sesi.forEach(s => {
+            s.mulai = plan.mulai;
+            s.selesai = plan.selesai;
+          });
+        }
+      });
+
+      appStore.save();
+      if (!silent) {
+        appRenderer.renderAll();
+        showToast('success', 'Jadwal Diurutkan Rapi', `Seluruh mata kuliah di hari ${dayName} (${dayMatkuls.length} matkul) berhasil diurutkan jamnya secara rapi & berurutan.`);
+      }
+    },
+
+    // Otomatis urutkan jadwal seluruh hari Senin s/d Sabtu
+    alignAllSchedulesSequentially() {
+      const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      days.forEach(d => {
+        this.alignDayScheduleSequentially(d, true);
+      });
       appStore.save();
       appRenderer.renderAll();
-      showToast('success', 'Jadwal Digeser', `${matkul.nama} berhasil dipindahkan ke hari ${newDayName}.`);
+      showToast('success', 'Semua Jadwal Diurutkan Rapi', 'Seluruh jadwal perkuliahan Senin s/d Sabtu telah diurutkan jamnya secara berurutan dan bebas dari bentrok!');
+    },
+
+    // Geser urutan matkul dalam satu hari (lebih awal / lebih akhir) dan otomatis sesuaikan jamnya
+    moveCourseOrderInDay(matkulId, direction) {
+      const allMatkul = appStore.getActiveMatkul();
+      const target = allMatkul.find(m => m.id === matkulId);
+      if (!target) return;
+
+      const day = target.hariReguler;
+      let dayMatkuls = appRenderer.sortMatkulByTime(allMatkul.filter(m => m.hariReguler === day));
+      const currentIdx = dayMatkuls.findIndex(m => m.id === matkulId);
+
+      if (direction === 'up' && currentIdx > 0) {
+        const temp = dayMatkuls[currentIdx];
+        dayMatkuls[currentIdx] = dayMatkuls[currentIdx - 1];
+        dayMatkuls[currentIdx - 1] = temp;
+      } else if (direction === 'down' && currentIdx < dayMatkuls.length - 1) {
+        const temp = dayMatkuls[currentIdx];
+        dayMatkuls[currentIdx] = dayMatkuls[currentIdx + 1];
+        dayMatkuls[currentIdx + 1] = temp;
+      } else {
+        return;
+      }
+
+      // Hitung ulang slot waktu berurutan
+      const planned = this.calculateSequentialSlots(dayMatkuls);
+      planned.forEach(p => {
+        if (p.matkul.sesi) {
+          p.matkul.sesi.forEach(s => {
+            s.mulai = p.mulai;
+            s.selesai = p.selesai;
+          });
+        }
+      });
+
+      appStore.save();
+      appRenderer.renderAll();
+      showToast('success', 'Urutan Jam Digeser', `${target.nama} berhasil digeser ${direction === 'up' ? 'lebih awal' : 'lebih akhir'} dan jamnya otomatis disesuaikan berurutan.`);
+    },
+
+    // Memindahkan matkul ke hari lain (Drag & Drop atau Programmatic) dengan penyesuaian jam otomatis berurutan
+    shiftMatkulDay(matkul, newDayName, customMulai = null, customSelesai = null) {
+      const oldDay = matkul.hariReguler;
+      matkul.hariReguler = newDayName;
+
+      // Geser tanggal sesi agar kalender dan absensi sinkron dengan hari baru
+      this.shiftSessionDates(matkul.sesi, newDayName);
+
+      if (customMulai && customSelesai) {
+        if (matkul.sesi) {
+          matkul.sesi.forEach(s => {
+            s.mulai = customMulai;
+            s.selesai = customSelesai;
+          });
+        }
+      } else {
+        // Otomatis sesuaikan berurutan di hari tujuan
+        this.alignDayScheduleSequentially(newDayName, true);
+      }
+
+      // Rapikan juga hari asal jika berbeda
+      if (oldDay && oldDay !== newDayName) {
+        this.alignDayScheduleSequentially(oldDay, true);
+      }
+
+      appStore.save();
+      appRenderer.renderAll();
+      const firstS = (matkul.sesi && matkul.sesi[0]) || {};
+      showToast('success', 'Jadwal Berhasil Digeser', `${matkul.nama} berhasil dipindahkan ke hari ${newDayName} dan jam otomatis disesuaikan berurutan (${firstS.mulai || ''} – ${firstS.selesai || ''} WIB).`);
+    },
+
+    // Buka Modal Pergeseran Jadwal & Urutan Jam
+    openGeserJadwalModal(matkulId = null) {
+      const allMatkul = appStore.getActiveMatkul();
+      if (allMatkul.length === 0) {
+        showToast('info', 'Belum Ada Matkul', 'Silakan tambahkan mata kuliah terlebih dahulu.');
+        return;
+      }
+
+      const modal = document.getElementById('modalGeserJadwal');
+      if (!modal) return;
+
+      const select = document.getElementById('geserMatkulSelect');
+      const targetMatkulId = matkulId || allMatkul[0].id;
+
+      select.innerHTML = allMatkul.map(m => `
+        <option value="${m.id}" ${m.id === targetMatkulId ? 'selected' : ''}>
+          ${escapeHtml(m.nama)} (${m.kode}) &bull; ${m.hariReguler}
+        </option>
+      `).join('');
+
+      const activeMatkul = allMatkul.find(m => m.id === targetMatkulId) || allMatkul[0];
+      const targetDayInput = document.getElementById('geserTargetDay');
+      targetDayInput.value = activeMatkul.hariReguler || 'Senin';
+
+      // Update pills
+      document.querySelectorAll('.geser-day-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.getAttribute('data-day') === targetDayInput.value);
+        if (pill.getAttribute('data-day') === targetDayInput.value) {
+          pill.style.background = 'var(--teal-600)';
+          pill.style.color = '#ffffff';
+        } else {
+          pill.style.background = 'var(--neutral-100)';
+          pill.style.color = 'var(--neutral-700)';
+        }
+      });
+
+      this.updateGeserPreview();
+      modal.classList.add('active');
+    },
+
+    // Perbarui Pratinjau Urutan Jam di Modal Pergeseran
+    updateGeserPreview() {
+      const allMatkul = appStore.getActiveMatkul();
+      const selId = document.getElementById('geserMatkulSelect')?.value;
+      const targetDay = document.getElementById('geserTargetDay')?.value || 'Senin';
+      const activeMatkul = allMatkul.find(m => m.id === selId);
+      if (!activeMatkul) return;
+
+      // Update current info
+      const infoBox = document.getElementById('geserCurrentInfo');
+      const s0 = (activeMatkul.sesi && activeMatkul.sesi[0]) || {};
+      if (infoBox) {
+        infoBox.innerHTML = `
+          <strong>Status Saat Ini:</strong> Hari <strong>${activeMatkul.hariReguler}</strong>, Jam <strong>${s0.mulai || '07:10'} – ${s0.selesai || '09:40'} WIB</strong> (${activeMatkul.sks} SKS, Kelas ${activeMatkul.kelas})
+        `;
+      }
+
+      // Compute simulated sequence on target day
+      const otherInTargetDay = allMatkul.filter(m => m.hariReguler === targetDay && m.id !== activeMatkul.id);
+      const simulatedList = [...otherInTargetDay, activeMatkul];
+      const planned = this.calculateSequentialSlots(simulatedList);
+
+      const previewBox = document.getElementById('geserPreviewList');
+      if (previewBox) {
+        previewBox.innerHTML = planned.map((p, idx) => {
+          const isThis = p.matkul.id === activeMatkul.id;
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-radius: 6px; font-size: 11.5px; background: ${isThis ? 'var(--teal-50)' : 'var(--neutral-50)'}; border: 1px solid ${isThis ? 'var(--teal-300)' : 'var(--neutral-200)'};">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 10px; font-weight: 800; background: ${isThis ? 'var(--teal-700)' : 'var(--neutral-400)'}; color: #ffffff; padding: 1px 6px; border-radius: 4px;">Sesi ${idx + 1}</span>
+                <span style="font-weight: 800; color: ${isThis ? 'var(--teal-900)' : 'var(--neutral-800)'};">${escapeHtml(p.matkul.nama)} ${isThis ? '👈 (Matkul Ini)' : ''}</span>
+              </div>
+              <span style="font-weight: 800; color: var(--teal-800);">${p.mulai} – ${p.selesai} WIB</span>
+            </div>
+          `;
+        }).join('');
+      }
+    },
+
+    // Terapkan Pergeseran dari Modal
+    applyGeserJadwal() {
+      const allMatkul = appStore.getActiveMatkul();
+      const selId = document.getElementById('geserMatkulSelect')?.value;
+      const targetDay = document.getElementById('geserTargetDay')?.value;
+      const timeMode = document.querySelector('input[name="geserTimeMode"]:checked')?.value || 'auto_sequential';
+      const targetMatkul = allMatkul.find(m => m.id === selId);
+
+      if (!targetMatkul || !targetDay) return;
+
+      let customMulai = null;
+      let customSelesai = null;
+
+      if (timeMode === 'choose_slot') {
+        const slotVal = document.getElementById('geserSlotSelect')?.value || '07:10|09:40';
+        const parts = slotVal.split('|');
+        customMulai = parts[0];
+        customSelesai = parts[1];
+      } else if (timeMode === 'custom_time') {
+        customMulai = document.getElementById('geserCustomMulai')?.value || '07:10';
+        customSelesai = document.getElementById('geserCustomSelesai')?.value || '09:40';
+        if (customSelesai <= customMulai) {
+          showToast('error', 'Jam Tidak Valid', 'Jam selesai harus lebih akhir dari jam mulai!');
+          return;
+        }
+      }
+
+      this.shiftMatkulDay(targetMatkul, targetDay, customMulai, customSelesai);
+      document.getElementById('modalGeserJadwal').classList.remove('active');
     }
   };
 
