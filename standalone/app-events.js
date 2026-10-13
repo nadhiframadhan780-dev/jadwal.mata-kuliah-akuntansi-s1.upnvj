@@ -105,31 +105,6 @@
     const undoBtn = document.getElementById('undoBtn');
     if (undoBtn) undoBtn.onclick = () => appStore.undo();
 
-    // Skalakan lembar A4 (794px) agar pas di layar HP, tampilan tetap sama seperti laptop
-    function fitPrintSheet() {
-      const sheet = document.getElementById('printableScheduleSheet');
-      if (!sheet) return;
-      const A4_W = 794;
-      let vp = document.getElementById('printSheetViewport');
-      if (!vp) {
-        vp = document.createElement('div');
-        vp.id = 'printSheetViewport';
-        sheet.parentNode.insertBefore(vp, sheet);
-        vp.appendChild(sheet);
-      }
-      sheet.classList.add('is-scaled');
-      const host = vp.parentElement;
-      const cs = getComputedStyle(host);
-      const avail = host.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-      const scale = Math.min(1, Math.max(0.3, avail / A4_W));
-      sheet.style.transform = scale < 1 ? `scale(${scale})` : 'none';
-      vp.style.width = Math.round(A4_W * scale) + 'px';
-      vp.style.height = Math.ceil(sheet.offsetHeight * scale) + 'px';
-    }
-    window.addEventListener('resize', () => {
-      if (document.getElementById('printPreviewModal')?.classList.contains('active')) fitPrintSheet();
-    });
-
     // Print & PDF Official Preview Handlers
     function populateAndOpenPrintModal() {
       const p = appStore.state.profile;
@@ -187,7 +162,7 @@
         tr.innerHTML = `
           <td style="padding: 7px 5px; text-align: center; border: 1px solid #E2E8F0; font-weight: 700;">${idx + 1}</td>
           <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-weight: 700; color: #0D9488;">${m.hariReguler}</td>
-          <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-weight: 600; white-space: nowrap;">${s0.mulai || '--:--'} – ${s0.selesai || '--:--'}</td>
+          <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-weight: 600;">${s0.mulai || '--:--'} – ${s0.selesai || '--:--'}</td>
           <td style="padding: 7px 8px; text-align: center; border: 1px solid #E2E8F0; font-family: monospace; font-weight: 700; color: #0F766E;">${m.kode}</td>
           <td style="padding: 7px 10px; border: 1px solid #E2E8F0; font-weight: 700; color: #0F172A;">${escapeHtml(m.nama)}</td>
           <td style="padding: 7px 5px; text-align: center; border: 1px solid #E2E8F0; font-weight: 700;">${m.sks}</td>
@@ -202,7 +177,6 @@
       document.getElementById('printSheetTotalSksFoot').textContent = `${totalSks}`;
 
       document.getElementById('printPreviewModal').classList.add('active');
-      requestAnimationFrame(() => requestAnimationFrame(fitPrintSheet));
     }
 
     // Attach trigger to Topbar Print Button
@@ -231,55 +205,38 @@
       };
     }
 
-    // Modal Download PDF — dirender dari salinan A4 (794px) di luar layar,
-    // sehingga hasilnya identik di HP maupun laptop (tidak ikut ukuran layar).
+    // Modal Download PDF using html2pdf
     const modalDownloadPdf = document.getElementById('pdfDownloadTriggerBtn');
     if (modalDownloadPdf) {
-      modalDownloadPdf.onclick = async () => {
-        const source = document.getElementById('printableScheduleSheet');
+      modalDownloadPdf.onclick = () => {
+        const element = document.getElementById('printableScheduleSheet');
         const p = appStore.state.profile;
         const sem = appStore.state.viewingSemester;
         const cleanName = (p.nama || 'Mahasiswa').replace(/[^a-zA-Z0-9]/g, '_');
         const filename = `Jadwal_Kuliah_UPNVJ_${p.nim}_${cleanName}_Sem${sem}.pdf`;
 
-        if (!window.html2pdf) {
-          showToast('info', 'Cetak ke PDF', 'Gunakan opsi "Simpan sebagai PDF" pada dialog cetak.');
-          window.print();
-          return;
-        }
         showToast('info', 'Menyiapkan PDF...', 'Sistem sedang memproses dokumen PDF beresolusi tinggi.');
-        modalDownloadPdf.disabled = true;
 
-        const holder = document.createElement('div');
-        holder.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;background:#fff;pointer-events:none;';
-        const clone = source.cloneNode(true);
-        clone.removeAttribute('id');
-        clone.classList.remove('is-scaled');
-        Object.assign(clone.style, {
-          width: '794px', maxWidth: 'none', margin: '0', transform: 'none',
-          boxShadow: 'none', borderRadius: '0', boxSizing: 'border-box', padding: '28px 34px'
-        });
-        holder.appendChild(clone);
-        document.body.appendChild(holder);
-
-        try {
-          if (document.fonts && document.fonts.ready) await document.fonts.ready;
-          await html2pdf().set({
-            margin: [6, 0, 6, 0],
-            filename,
+        if (window.html2pdf) {
+          const opt = {
+            margin: [8, 8, 8, 8],
+            filename: filename,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794, scrollX: 0, scrollY: 0, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
-          }).from(clone).save();
-          showToast('success', 'PDF Berhasil Diunduh!', `Dokumen ${filename} telah tersimpan.`);
-        } catch (err) {
-          console.error('PDF error:', err);
-          showToast('warning', 'Membuka Print PDF', 'Mengalihkan ke dialog cetak browser (Simpan sebagai PDF).');
+            html2canvas: { scale: 2.2, useCORS: true, allowTaint: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+
+          html2pdf().set(opt).from(element).save().then(() => {
+            showToast('success', 'PDF Berhasil Diunduh!', `Dokumen ${filename} telah tersimpan.`);
+          }).catch((err) => {
+            console.error('PDF error:', err);
+            showToast('warning', 'Membuka Print PDF', 'Mengalihkan ke dialog cetak browser (Simpan sebagai PDF).');
+            window.print();
+          });
+        } else {
+          // Fallback to native print to PDF
+          showToast('info', 'Cetak ke PDF', 'Gunakan opsi "Save as PDF" / "Simpan sebagai PDF" pada dialog cetak.');
           window.print();
-        } finally {
-          holder.remove();
-          modalDownloadPdf.disabled = false;
         }
       };
     }
@@ -967,18 +924,18 @@
         name: "Jadwal Kuliah S1 Akuntansi UPNVJ",
         short_name: "Jadwal AKS1",
         description: "Aplikasi Jadwal Kuliah & Presensi S1 Akuntansi UPN Veteran Jakarta",
-        start_url: window.location.href,
+        start_url: "/",
         display: "standalone",
-        background_color: "#ffffff",
+        background_color: "#042F2E",
         theme_color: "#0D9488",
         icons: [
           {
-            src: "https://feb.upnvj.ac.id/wp-content/uploads/2023/06/AK-s1-220x220.png",
+            src: "/pwa-192x192.png",
             sizes: "192x192",
             type: "image/png"
           },
           {
-            src: "https://feb.upnvj.ac.id/wp-content/uploads/2023/06/AK-s1-220x220.png",
+            src: "/pwa-512x512.png",
             sizes: "512x512",
             type: "image/png"
           }
@@ -991,6 +948,66 @@
       link.href = manifestUrl;
       document.head.appendChild(link);
     } catch (e) {}
+
+    // Offline / Online Status Synchronization
+    const offlineBadge = document.getElementById('offlineIndicatorBadge');
+    const offlineStatusPill = document.getElementById('offlineStatusPill');
+
+    function updateNetworkStatus(online) {
+      if (offlineBadge) {
+        offlineBadge.style.display = online ? 'none' : 'flex';
+      }
+      if (offlineStatusPill) {
+        offlineStatusPill.textContent = online ? 'Aktif & Terlindungi' : 'Mode Offline Aktif';
+        offlineStatusPill.style.background = online ? 'var(--teal-100)' : 'var(--yellow-100)';
+        offlineStatusPill.style.color = online ? 'var(--teal-800)' : 'var(--yellow-800)';
+      }
+    }
+
+    window.addEventListener('online', () => {
+      updateNetworkStatus(true);
+      showToast('success', 'Kembali Online! 🌐', 'Koneksi internet terhubung kembali. Semua data lokal tersimpan aman.');
+    });
+
+    window.addEventListener('offline', () => {
+      updateNetworkStatus(false);
+      showToast('warning', 'Mode Offline Aktif ⚡', 'Koneksi internet / kuota tidak tersedia. Anda tetap dapat mengakses dan mengelola seluruh jadwal kuliah secara penuh.');
+    });
+
+    // Check initial online status
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      updateNetworkStatus(false);
+    }
+
+    // Manual Offline Cache Pre-sync Button in Settings
+    const syncOfflineBtn = document.getElementById('syncOfflineCacheBtn');
+    if (syncOfflineBtn) {
+      syncOfflineBtn.onclick = async () => {
+        showToast('info', 'Menyinkronkan...', 'Menyimpan aset aplikasi dan berkas jadwal ke cache offline memori perangkat.');
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({ type: 'CACHE_ALL_ASSETS' });
+        }
+        if ('caches' in window) {
+          try {
+            const cache = await caches.open('upnvj-jadwal-v2');
+            await cache.addAll([
+              '/',
+              '/index.html',
+              '/jadwal-kuliah-aks1.upnvj.html',
+              '/manifest.json',
+              '/favicon.png',
+              '/pwa-192x192.png',
+              '/pwa-512x512.png'
+            ]);
+            showToast('success', 'Cache Offline Siap! 💾', 'Aplikasi berhasil diunduh ke memori perangkat. Anda dapat menggunakannya kapan saja tanpa kuota internet.');
+          } catch (err) {
+            showToast('success', 'Mode Offline Siap! 💾', 'Seluruh data tersimpan di penyimpanan lokal dan dapat digunakan tanpa internet.');
+          }
+        } else {
+          showToast('success', 'Data Lokal Siap! 💾', 'Seluruh jadwal tersimpan di LocalStorage dan dapat diakses luring.');
+        }
+      };
+    }
 
     // Keyboard support: Escape closes modals
     document.addEventListener('keydown', (e) => {

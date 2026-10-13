@@ -1225,230 +1225,42 @@ body {
   }
 }
 
-
-
-/* =====================================================================
-   MOBILE FIXES v2 — perbaikan tampilan HP (anti-overflow, safe-area, dvh)
-   ===================================================================== */
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-html, body { max-width: 100%; overflow-x: hidden; }
-img, svg, video, canvas { max-width: 100%; }
-
-/* Akar masalah: flex child default min-width:auto membuat halaman melebar */
-.main-wrapper { min-width: 0; max-width: 100%; }
-.content-body, .page-view, .card { min-width: 0; max-width: 100%; }
-.topbar { min-width: 0; max-width: 100%; }
-
-/* 100vh di HP tidak memperhitungkan address bar → pakai dvh */
-@supports (height: 100dvh) {
-  body, .app-layout, .main-wrapper { min-height: 100dvh; }
+/* Offline Status Floating Indicator */
+.offline-badge {
+  position: fixed;
+  bottom: 74px; /* above bottom navigation on mobile */
+  left: 14px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fef08a;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  padding: 7px 14px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  animation: fadeIn 0.3s ease;
+}
+.offline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #facc15;
+  box-shadow: 0 0 8px #facc15;
+  animation: pulseDot 1.8s infinite ease-in-out;
+  flex-shrink: 0;
+}
+@media (min-width: 1025px) {
+  .offline-badge {
+    bottom: 24px;
+    left: 284px; /* to the right of desktop sidebar */
+  }
 }
 
-/* Tabel lebar scroll di dalam kartu, bukan mendorong halaman */
-.card:has(> table), .card:has(table) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
 
-@media (max-width: 1024px) {
-  .bottom-nav { height: calc(64px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); }
-  .main-wrapper { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
-  .topbar { padding-top: env(safe-area-inset-top, 0px); height: calc(56px + env(safe-area-inset-top, 0px)); }
-  .modal-dialog { max-height: 90vh; max-height: 90dvh; padding-bottom: env(safe-area-inset-bottom, 0px); }
-  .modal-body { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-}
-@media (max-width: 768px) {
-  /* Cegah iOS auto-zoom saat fokus ke input */
-  input, select, textarea { font-size: 16px !important; }
-  button, .btn, .topbar-btn, .bottom-nav-item { touch-action: manipulation; }
-  .week-days-grid, .jadwal-day-tabs, .jadwal-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .week-days-grid::-webkit-scrollbar { display: none; }
-  #printPreviewModal .modal-header { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
-  #printPreviewModal .modal-header > div:last-child { width: 100%; justify-content: space-between; }
-  #printPreviewModal .modal-header .btn { flex: 1; justify-content: center; }
-  #printPreviewModal .modal-body { padding: 12px !important; }
-}
-
-/* Pratinjau kertas A4: selalu 794px lalu diskalakan agar pas layar (hasil sama seperti laptop) */
-#printSheetViewport { width: 100%; overflow: hidden; margin: 0 auto; }
-#printableScheduleSheet.is-scaled { width: 794px !important; max-width: none !important; transform-origin: top left; box-sizing: border-box; }
-@media print {
-  #printSheetViewport { height: auto !important; overflow: visible !important; }
-  #printableScheduleSheet.is-scaled { transform: none !important; width: 100% !important; }
-}
-
-.btn svg { flex-shrink: 0; }
-
-
-/* =====================================================================
-   JADWAL KULIAH v2 — gaya dasar (laptop, tablet & HP)
-   Sebelumnya kelas-kelas ini hanya didefinisikan di dalam @media HP,
-   sehingga di layar besar tampil polos seperti elemen bawaan browser.
-   ===================================================================== */
-.jadwal-page-header {
-  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
-  gap: 14px; margin-bottom: 18px;
-}
-.jadwal-header-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-.jadwal-header-actions .btn { padding: 10px 16px; font-size: 13px; gap: 8px; }
-
-.jadwal-filter-bar {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 12px; padding: 12px 14px; margin-bottom: 16px;
-  background: #fff; border: 1px solid var(--neutral-200);
-  border-radius: var(--radius-lg); box-shadow: var(--card-shadow);
-}
-.jadwal-tab-control {
-  display: inline-flex; gap: 4px; padding: 4px;
-  background: var(--neutral-100); border-radius: var(--radius-md); max-width: 100%;
-  overflow-x: auto; scrollbar-width: none;
-}
-.jadwal-tab-control::-webkit-scrollbar { display: none; }
-.jadwal-tab-control .btn {
-  flex-shrink: 0; background: transparent; border: none; box-shadow: none;
-  color: var(--neutral-600); font-weight: 700; font-size: 12.5px;
-  padding: 8px 16px; border-radius: 9px; white-space: nowrap;
-}
-.jadwal-tab-control .btn:hover { background: rgba(255,255,255,.65); color: var(--teal-800); }
-.jadwal-tab-control .btn.active {
-  background: #fff; color: var(--teal-800); font-weight: 800;
-  box-shadow: 0 1px 4px rgba(15,23,42,.12);
-}
-
-.jadwal-filter-inputs { display: flex; flex-wrap: wrap; gap: 8px; flex: 1 1 280px; justify-content: flex-end; }
-.jadwal-search-field, .jadwal-select-field {
-  height: 40px; padding: 0 12px; font: inherit; font-size: 13px; color: var(--neutral-800);
-  background: #fff; border: 1px solid var(--neutral-300); border-radius: 10px; outline: none;
-  transition: border-color .15s, box-shadow .15s;
-}
-.jadwal-search-field {
-  flex: 1 1 200px; min-width: 0; max-width: 340px; padding-left: 38px;
-  background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.3-4.3'/></svg>") no-repeat 12px center;
-}
-.jadwal-select-field {
-  flex: 0 1 160px; min-width: 130px; cursor: pointer; appearance: none; -webkit-appearance: none; padding-right: 32px;
-  background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 11px center;
-}
-.jadwal-search-field:focus, .jadwal-select-field:focus {
-  border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(20,184,166,.18);
-}
-
-/* Filter hari (pill) */
-.jadwal-mobile-days-nav {
-  display: flex; gap: 8px; padding: 2px 0 14px; overflow-x: auto; scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-.jadwal-mobile-days-nav::-webkit-scrollbar { display: none; }
-.jadwal-day-tab-btn {
-  flex-shrink: 0; padding: 8px 16px; font: inherit; font-size: 12.5px; font-weight: 700;
-  border-radius: 9999px; border: 1px solid var(--neutral-300); background: #fff;
-  color: var(--neutral-700); cursor: pointer; white-space: nowrap; transition: all .15s;
-}
-.jadwal-day-tab-btn:hover { border-color: var(--teal-400); color: var(--teal-800); background: var(--teal-50); }
-.jadwal-day-tab-btn.active {
-  background: var(--teal-600); color: #fff; border-color: var(--teal-700);
-  box-shadow: 0 3px 8px rgba(13,148,136,.28);
-}
-
-/* Kartu hari & item mata kuliah */
-.jadwal-day-card { transition: box-shadow .2s, transform .2s; }
-.jadwal-day-card:hover { box-shadow: var(--card-shadow-hover); }
-.jadwal-mini-item:hover {
-  background: #fff !important; transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15,23,42,.08); border-color: var(--teal-300) !important;
-}
-.jadwal-mini-item:active { transform: scale(.99); }
-.jadwal-mini-item[draggable="true"] { -webkit-user-drag: element; }
-.day-sessions-container, .day-list, .mobile-meetings-list { min-width: 0; }
-.day-list > div, .mobile-meetings-list > div { transition: background .15s, box-shadow .15s; min-width: 0; }
-.day-list > div:hover, .mobile-meetings-list > div:hover {
-  background: #fff !important; box-shadow: 0 3px 10px rgba(15,23,42,.07);
-}
-.day-list .btn, .jadwal-permatkul-grid .btn { white-space: nowrap; }
-
-/* Per Matkul */
-.jadwal-permatkul-grid > .card { transition: box-shadow .2s, transform .2s; }
-.jadwal-permatkul-grid > .card:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); }
-.jadwal-permatkul-grid details > summary {
-  list-style: none; display: flex; align-items: center; gap: 6px; padding: 4px 0; user-select: none;
-}
-.jadwal-permatkul-grid details > summary::-webkit-details-marker { display: none; }
-.jadwal-permatkul-grid details > summary::before {
-  content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
-  transform: rotate(-45deg); transition: transform .2s; margin-right: 2px;
-}
-.jadwal-permatkul-grid details[open] > summary::before { transform: rotate(45deg); }
-.jadwal-permatkul-grid details > div { scrollbar-width: thin; }
-
-/* Semua Sesi: 2 kolom di layar lebar */
-@media (min-width: 900px) {
-  .mobile-meetings-list { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10px !important; }
-}
-
-/* Tombol +/- kehadiran & ikon edit sesi */
-.att-adj-btn {
-  min-width: 30px; height: 28px; padding: 0 8px !important; display: inline-flex;
-  align-items: center; justify-content: center; font-size: 15px; font-weight: 800; line-height: 1;
-  border-radius: 8px; cursor: pointer;
-}
-.att-adj-btn:active { transform: scale(.92); }
-.ses-check-btn { cursor: pointer; transition: all .15s; }
-.ses-check-btn:hover { filter: brightness(.96); transform: translateY(-1px); }
-.edit-session-btn { cursor: pointer; }
-
-/* Kondisi kosong */
-.jadwal-empty {
-  text-align: center; padding: 44px 20px; background: #fff; border: 1px dashed var(--neutral-300);
-  border-radius: var(--radius-xl);
-}
-.jadwal-empty-icon { font-size: 34px; margin-bottom: 8px; }
-.jadwal-empty h4 { font-size: 15px; font-weight: 800; color: var(--teal-900); margin: 0 0 4px; }
-.jadwal-empty p { font-size: 12.5px; color: var(--neutral-500); margin: 0; }
-
-/* Penyesuaian HP */
-@media (max-width: 768px) {
-  .jadwal-page-header { flex-direction: column; align-items: stretch; margin-bottom: 14px; }
-  .jadwal-header-actions { width: 100%; flex-wrap: nowrap; }
-  .jadwal-header-actions .btn { flex: 1; justify-content: center; padding: 10px 8px; font-size: 12px; }
-  .jadwal-filter-bar { flex-direction: column; align-items: stretch; box-shadow: none; }
-  .jadwal-tab-control { display: flex; width: 100%; }
-  .jadwal-tab-control .btn { flex: 1 0 auto; padding: 8px 12px; font-size: 12px; }
-  .jadwal-filter-inputs { flex-wrap: nowrap; justify-content: stretch; flex: none; width: 100%; }
-  .jadwal-search-field { flex: 1 1 0; max-width: none; }
-  .jadwal-select-field { flex: 0 0 132px; min-width: 0; padding-right: 28px; }
-  .jadwal-search-field, .jadwal-select-field { height: 42px; }
-  .day-list > div { flex-wrap: wrap; }
-  .day-list > div > .btn { margin-left: auto; }
-}
-
-/* Header sidebar: logo & judul tidak saling menempel */
-.sidebar-header { display: flex; align-items: center; gap: 12px; }
-.sidebar-header .logo-badge { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.sidebar-header .logo-badge img { flex-shrink: 0; }
-.sidebar-brand-text { min-width: 0; }
-@media (max-width: 768px) {
-  .jadwal-select-field { flex: 0 0 152px; padding-left: 10px; padding-right: 30px; text-overflow: ellipsis; }
-  .jadwal-search-field { padding-left: 36px; }
-}
-@media (max-width: 768px) { .jadwal-search-field::placeholder { font-size: 14px; } }
-
-
-/* ===== Geser jadwal & pemilih Jam ke-N ===== */
-.fld-label { display: block; font-size: 11.5px; font-weight: 700; color: var(--neutral-700); margin-bottom: 4px; }
-.fld-control {
-  width: 100%; height: 40px; padding: 0 10px; font: inherit; font-size: 13px; color: var(--neutral-800);
-  background: #fff; border: 1px solid var(--neutral-300); border-radius: var(--radius-md); outline: none;
-}
-select.fld-control {
-  appearance: none; -webkit-appearance: none; padding-right: 30px;
-  background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 10px center;
-}
-.fld-control:focus { border-color: var(--teal-500); box-shadow: 0 0 0 3px rgba(20,184,166,.18); }
-.jam-preview { font-size: 12px; font-weight: 700; color: var(--teal-800); background: var(--teal-50); border: 1px dashed var(--teal-300); border-radius: 10px; padding: 8px 12px; text-align: center; }
-.jam-preview:empty { display: none; }
-.shift-summary { background: var(--teal-50); border: 1px solid var(--teal-200); border-radius: var(--radius-md); padding: 10px 12px; }
-.shift-btn, .shift-btn-lg {
-  font: inherit; cursor: pointer; font-weight: 800; color: var(--teal-800); background: var(--teal-50);
-  border: 1px solid var(--teal-200); transition: all .15s; white-space: nowrap;
-}
-.shift-btn { font-size: 10px; padding: 1px 7px; border-radius: 9999px; }
-.shift-btn-lg { font-size: 12px; padding: 6px 12px; border-radius: 10px; }
-.shift-btn:hover, .shift-btn-lg:hover { background: var(--teal-100); border-color: var(--teal-400); }

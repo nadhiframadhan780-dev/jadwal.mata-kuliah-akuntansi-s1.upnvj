@@ -2,56 +2,19 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Jadwal Kuliah S1 Akuntansi UPNVJ</title>
   <meta name="description" content="Sistem Jadwal Kuliah, Absensi, Nilai &amp; IPK, dan Profil Mahasiswa S1 Akuntansi UPN Veteran Jakarta." />
   <meta name="theme-color" content="#0D9488" />
-  <meta name="application-name" content="Jadwal AKS1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Jadwal AKS1" />
   
-  <!-- Favicon & App Icons (Logo resmi UPNVJ, persegi & proporsional) -->
-  <link rel="icon" type="image/png" sizes="64x64" href="__ICON_FAVICON__" />
-  <link rel="apple-touch-icon" sizes="180x180" href="__ICON_APPLE__" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <script>
-    // PWA bootstrap: jika manifest.json tidak ikut di-hosting (file HTML tunggal),
-    // buat manifest otomatis lengkap dengan logo UPNVJ agar ikon install tidak jadi huruf "J".
-    (function () {
-      var ICONS = { i192: "__ICON_192__", i512: "__ICON_512__", mask: "__ICON_MASK__" };
-      function inject() {
-        var base = location.href.split('#')[0].split('?')[0];
-        var scope = base.substring(0, base.lastIndexOf('/') + 1);
-        var m = {
-          id: scope, name: 'Jadwal Kuliah S1 Akuntansi UPNVJ', short_name: 'Jadwal AKS1',
-          description: 'Jadwal Kuliah, Absensi, Nilai & IPK Mahasiswa S1 Akuntansi UPN Veteran Jakarta',
-          lang: 'id', start_url: base, scope: scope, display: 'standalone', orientation: 'any',
-          theme_color: '#0D9488', background_color: '#F0FDFA', categories: ['education'],
-          icons: [
-            { src: ICONS.i192, sizes: '192x192', type: 'image/png', purpose: 'any' },
-            { src: ICONS.i512, sizes: '512x512', type: 'image/png', purpose: 'any' },
-            { src: ICONS.mask, sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-          ]
-        };
-        var url = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/manifest+json' }));
-        var link = document.querySelector('link[rel="manifest"]');
-        if (!link) { link = document.createElement('link'); link.rel = 'manifest'; document.head.appendChild(link); }
-        link.href = url;
-      }
-      if (!/^https?:$/.test(location.protocol)) return;
-      fetch('manifest.json', { cache: 'no-store' })
-        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-        .then(function (j) { if (!j.icons || !j.icons.length) inject(); })
-        .catch(inject);
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('sw.js').catch(function () {});
-        });
-      }
-    })();
-  </script>
+  <!-- Favicon & App Icons (Official UPNVJ Logo) -->
+  <link rel="icon" type="image/png" href="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" />
+  <link rel="shortcut icon" href="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" />
+  <link rel="apple-touch-icon" href="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" />
+  <link rel="manifest" href="/manifest.json" />
   
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -80,8 +43,8 @@
   <div class="print-header" style="display: none;">
     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0D9488; padding-bottom: 12px; margin-bottom: 16px;">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <img src="__LOGO_UPNVJ_BASE64__" alt="UPNVJ" style="height: 50px;" onerror="this.style.display='none'">
-        <img src="__LOGO_AK_BASE64__" alt="S1 Akuntansi" style="height: 50px;" onerror="this.style.display='none'">
+        <img src="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" alt="UPNVJ" style="height: 50px;" onerror="this.style.display='none'">
+        <img src="https://feb.upnvj.ac.id/wp-content/uploads/2023/06/AK-s1-220x220.png" alt="S1 Akuntansi" style="height: 50px;" onerror="this.style.display='none'">
         <div>
           <h2 style="font-size: 16px; margin: 0; color: #0D9488; font-weight: 800;">UNIVERSITAS PEMBANGUNAN NASIONAL VETERAN JAKARTA</h2>
           <p style="font-size: 12px; margin: 2px 0 0 0; color: #475569;">FAKULTAS EKONOMI DAN BISNIS — PROGRAM STUDI S1 AKUNTANSI</p>
@@ -329,7 +292,7 @@
               </button>
               <button class="btn btn-primary btn-sm" id="openAddMatkulModalBtn">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
-                <span>Matkul Baru</span>
+                <span>+ Matkul Baru</span>
               </button>
             </div>
           </div>
@@ -492,7 +455,7 @@
               <span style="font-size: 12px; color: var(--neutral-500);">Untuk semester yang detail matkulnya tidak diinput</span>
             </div>
             <div style="overflow-x: auto;">
-              <table style="width: 100%; min-width: 520px; border-collapse: collapse; font-size: 13px; text-align: left;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
                 <thead>
                   <tr style="border-bottom: 2px solid var(--neutral-200); color: var(--neutral-600); font-size: 11.5px;">
                     <th style="padding: 8px 12px;">Semester</th>
@@ -555,8 +518,8 @@
               <!-- Holographic / Chip decoration -->
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 14px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                  <img src="__LOGO_UPNVJ_BASE64__" alt="UPNVJ" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback\'>UPN</div>'">
-                  <img src="__LOGO_AK_BASE64__" alt="S1 AK" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback ak\'>AK</div>'">
+                  <img src="https://www.upnvj.ac.id/id/files/thumb/89f8a80e388ced3704b091e21f510755/520" alt="UPNVJ" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback\'>UPN</div>'">
+                  <img src="https://feb.upnvj.ac.id/wp-content/uploads/2023/06/AK-s1-220x220.png" alt="S1 AK" style="height: 42px; background: #fff; border-radius: 8px; padding: 2px;" onerror="this.outerHTML='<div class=\'logo-fallback ak\'>AK</div>'">
                   <div>
                     <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.5px; color: var(--yellow-400);">UPN VETERAN JAKARTA</div>
                     <div style="font-size: 10px; color: rgba(255,255,255,0.85); font-weight: 600;">FAKULTAS EKONOMI &amp; BISNIS</div>
@@ -834,6 +797,32 @@
               </div>
             </div>
 
+            <!-- Fitur Akses Offline Penuh -->
+            <div class="card" style="padding: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px;">
+                <div>
+                  <h3 style="font-size: 15px; font-weight: 800; color: var(--teal-900); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+                    Akses Offline 100% (Tanpa Kuota / Sinyal)
+                  </h3>
+                  <p style="font-size: 12.5px; color: var(--neutral-600); line-height: 1.4;">
+                    Aplikasi ini dirancang khusus dengan teknologi Progressive Web App (PWA) &amp; Cache Storage. Seluruh halaman, jadwal perkuliahan, data presensi, dan estimasi nilai dapat dibuka dan diedit saat tidak ada koneksi internet.
+                  </p>
+                </div>
+                <span id="offlineStatusPill" style="flex-shrink: 0; background: var(--teal-100); color: var(--teal-800); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px;">
+                  Aktif &amp; Terlindungi
+                </span>
+              </div>
+
+              <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px;">
+                <button class="btn btn-secondary btn-sm" id="syncOfflineCacheBtn" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                  <span>Perbarui &amp; Sinkronkan Cache Offline</span>
+                </button>
+                <span style="font-size: 11.5px; color: var(--neutral-500);">Menyimpan versi terbaru ke memori perangkat</span>
+              </div>
+            </div>
+
             <!-- Cadangan Penuh & Reset -->
             <div class="card" style="padding: 20px;">
               <h3 style="font-size: 15px; font-weight: 800; color: var(--teal-900); margin-bottom: 6px;">Penyimpanan &amp; Cadangan Penuh (Backup / Restore)</h3>
@@ -895,44 +884,6 @@
   <!-- Modals & Overlays -->
 
   <!-- 1. Modal Edit / Tambah Sesi & Pindah Jadwal -->
-  <!-- Modal Geser Jadwal Matkul (pilih hari & Jam ke-N) -->
-  <div class="modal-overlay" id="shiftModal">
-    <div class="modal-dialog" style="max-width: 460px;">
-      <div class="modal-header">
-        <h3>Geser Jadwal Mata Kuliah</h3>
-        <button class="modal-close" id="closeShiftModalBtn">&times;</button>
-      </div>
-      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
-        <div class="shift-summary">
-          <div id="shiftMatkulName" style="font-weight: 800; color: var(--teal-900); font-size: 14px;"></div>
-          <div id="shiftCurrent" style="font-size: 12px; color: var(--neutral-600); margin-top: 2px;"></div>
-        </div>
-        <div>
-          <label class="fld-label">Hari Tujuan</label>
-          <select id="shiftHari" class="fld-control"></select>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div><label class="fld-label">Mulai di</label><select id="shiftJam" class="fld-control"></select></div>
-          <div><label class="fld-label">Durasi</label><select id="shiftDurasi" class="fld-control"></select></div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div><label class="fld-label">Jam Mulai</label><input type="time" id="shiftMulai" class="fld-control" /></div>
-          <div><label class="fld-label">Jam Selesai</label><input type="time" id="shiftSelesai" class="fld-control" /></div>
-        </div>
-        <div id="shiftPreview" class="jam-preview"></div>
-        <div style="background: var(--yellow-50); border: 1px solid var(--yellow-200); padding: 10px 12px; border-radius: var(--radius-md);">
-          <div style="font-size: 11.5px; font-weight: 700; color: var(--yellow-800); margin-bottom: 6px;">Terapkan ke:</div>
-          <label style="display: block; font-size: 12px; margin-bottom: 4px; cursor: pointer;"><input type="radio" name="shiftScope" value="upcoming" checked /> Pertemuan yang belum berlangsung (disarankan)</label>
-          <label style="display: block; font-size: 12px; cursor: pointer;"><input type="radio" name="shiftScope" value="all" /> Semua pertemuan, termasuk yang sudah lewat</label>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" id="cancelShiftBtn">Batal</button>
-        <button class="btn btn-primary btn-sm" id="applyShiftBtn">Terapkan Pergeseran</button>
-      </div>
-    </div>
-  </div>
-
   <div class="modal-overlay" id="sessionModal">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -959,18 +910,6 @@
               <input type="date" id="sesFormTanggal" style="width: 100%; padding: 8px; border-radius: var(--radius-md); border: 1px solid var(--neutral-300); font-size: 13px;" required />
             </div>
           </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label class="fld-label">Pilih Jam Kuliah</label>
-              <select id="sesFormJam" class="fld-control"></select>
-            </div>
-            <div>
-              <label class="fld-label">Durasi</label>
-              <select id="sesFormDurasi" class="fld-control"></select>
-            </div>
-          </div>
-          <div id="sesFormJamPreview" class="jam-preview"></div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
@@ -1331,8 +1270,29 @@
   <!-- Toast Container -->
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- Offline Status Floating Indicator -->
+  <div id="offlineIndicatorBadge" class="offline-badge" style="display: none;">
+    <span class="offline-dot"></span>
+    <span>⚡ Mode Offline Aktif &bull; Data Jadwal &amp; Presensi Tetap Tersimpan Lokal</span>
+  </div>
+
   <!-- Confetti Canvas (For graduation / semester complete) -->
   <canvas id="confettiCanvas" style="position: fixed; inset: 0; pointer-events: none; z-index: 150; width: 100%; height: 100%; display: none;"></canvas>
+
+  <script>
+    // Register Service Worker for Offline Capabilities & PWA
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.protocol === 'http:' || window.location.hostname === 'localhost')) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => {
+            console.log('[PWA] Service Worker aktif untuk akses offline:', reg.scope);
+          })
+          .catch((err) => {
+            console.log('[PWA] Service Worker catatan:', err);
+          });
+      });
+    }
+  </script>
 
   <script>
     // JS_PLACEHOLDER
