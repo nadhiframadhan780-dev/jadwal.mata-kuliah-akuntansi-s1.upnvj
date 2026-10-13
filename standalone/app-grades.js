@@ -78,7 +78,7 @@
           </div>
 
           <!-- Mode Toggle -->
-          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 12px; font-size: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px;">
             <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
               <input type="radio" name="mode-${m.id}" value="angka" ${n.mode !== 'huruf' ? 'checked' : ''} />
               <span>Input Nilai Angka (UTS, UAS, Tugas)</span>

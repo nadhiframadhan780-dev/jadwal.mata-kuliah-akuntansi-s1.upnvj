@@ -795,7 +795,7 @@
                 <span style="background: var(--yellow-100); color: var(--yellow-900); font-weight: 700; padding: 1px 6px; border-radius: 4px;">📍 ${escapeHtml(s1.ruang || 'Kelas Kecil')}</span>
               </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
+            <div class="timeline-actions-wrap" style="display: flex; align-items: center; gap: 6px;">
               <button class="btn btn-secondary btn-sm" onclick="window.appViews.moveCourseOrderInDay('${m.id}', 'up')" title="Geser lebih awal" ${idx === 0 ? 'disabled' : ''}>⬆️</button>
               <button class="btn btn-secondary btn-sm" onclick="window.appViews.moveCourseOrderInDay('${m.id}', 'down')" title="Geser lebih akhir" ${idx === dayMatkuls.length - 1 ? 'disabled' : ''}>⬇️</button>
               <button class="btn btn-secondary btn-sm" onclick="window.appViews.openGeserJadwalModal('${m.id}')" style="font-weight: 700; color: var(--teal-700);">🔁 Geser</button>
@@ -834,23 +834,27 @@
             <h3 style="font-size: 16px; font-weight: 800; color: var(--teal-900); margin: 0;">Kalender Akademik Semester 1</h3>
             <p style="font-size: 12px; color: var(--neutral-500); margin: 2px 0 0;">Klik tanggal untuk melihat perkuliahan dan status kehadiran</p>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="btn btn-sm btn-secondary" id="calPrevMonthBtn" ${window.activeCalendarMonthIdx === 0 ? 'disabled' : ''}>&larr; Bulan Sebelumnya</button>
-            <span style="font-size: 13px; font-weight: 800; color: var(--teal-900); min-width: 120px; text-align: center;">${currentMonth.label}</span>
-            <button class="btn btn-sm btn-secondary" id="calNextMonthBtn" ${window.activeCalendarMonthIdx === months.length - 1 ? 'disabled' : ''}>Bulan Berikutnya &rarr;</button>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; max-width: 400px;">
+            <button class="btn btn-sm btn-secondary" id="calPrevMonthBtn" ${window.activeCalendarMonthIdx === 0 ? 'disabled' : ''} style="flex: 1; padding: 6px 8px; font-size: 11.5px; justify-content: center;">&larr; Prev</button>
+            <span style="font-size: 13px; font-weight: 800; color: var(--teal-900); text-align: center; flex: 1.2; white-space: nowrap;">${currentMonth.label}</span>
+            <button class="btn btn-sm btn-secondary" id="calNextMonthBtn" ${window.activeCalendarMonthIdx === months.length - 1 ? 'disabled' : ''} style="flex: 1; padding: 6px 8px; font-size: 11.5px; justify-content: center;">Next &rarr;</button>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-weight: 800; font-size: 11.5px; color: var(--teal-900); margin-bottom: 6px;">
-          <div style="color: var(--danger-600);">Minggu</div>
-          <div>Senin</div>
-          <div>Selasa</div>
-          <div>Rabu</div>
-          <div>Kamis</div>
-          <div>Jumat</div>
-          <div>Sabtu</div>
+        <div style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
+          <div style="min-width: 320px;">
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-weight: 800; font-size: 11px; color: var(--teal-900); margin-bottom: 6px;">
+              <div style="color: var(--danger-600);">Min</div>
+              <div>Sen</div>
+              <div>Sel</div>
+              <div>Rab</div>
+              <div>Kam</div>
+              <div>Jum</div>
+              <div>Sab</div>
+            </div>
+            <div id="calendarGridDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;"></div>
+          </div>
         </div>
-        <div id="calendarGridDays" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;"></div>
       `;
 
       const gridEl = wrap.querySelector('#calendarGridDays');
